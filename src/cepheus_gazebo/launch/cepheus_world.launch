@@ -1,0 +1,11 @@
+<launch>
+	<param name="robot_description" command="$(find xacro)/xacro '$(find
+	cepheus_description)/urdf/cepheus.xacro'" />
+	<node name="cepheus_spawn" pkg="gazebo_ros" type="spawn_model" output="screen"
+	args="-urdf -param robot_description -model cepheus" />
+	<include file="$(find gazebo_ros)/launch/empty_world.launch">
+		<arg name="world_name" value="$(find cepheus_gazebo)/worlds/cepheus.world"/>
+		<arg name="gui" value="true"/>
+	</include>
+	<include file="$(find cepheus_control)/launch/cepheus_control.launch" />
+</launch>

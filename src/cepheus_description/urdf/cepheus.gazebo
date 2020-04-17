@@ -1,0 +1,29 @@
+<?xml version="1.0"?>
+<robot name="cepheus" xmlns:xacro="http://www.ros.org/wiki/xacro">
+	<gazebo>
+		<plugin name="gazebo_ros_control" filename="libgazebo_ros_control.so">
+			<robotNamespace>
+			/cepheus</robotNamespace>
+		</plugin>
+	</gazebo>
+	<gazebo reference="cepheus">
+		<material>
+		Gazebo/Grey</material>
+	</gazebo>
+	<gazebo reference="reaction_wheel">
+		<material>
+		Gazebo/White</material>
+	</gazebo>
+	<gazebo reference="left_arm">
+		<material>
+		Gazebo/Blue</material>
+	</gazebo>
+	<gazebo reference="left_forearm">
+		<material>
+		Gazebo/Yellow</material>
+	</gazebo>
+	<gazebo reference="left_grip">
+		<material>
+		Gazebo/Grey</material>
+	</gazebo>
+</robot>
