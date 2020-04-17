@@ -7,6 +7,7 @@ ROS version: melodic
 Build
 -----
 ```bash
+cd catkin_simulator
 catkin_make
 source {PATH}/devel/setup.bash
 ```
