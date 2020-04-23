@@ -10,6 +10,7 @@ project(cepheus_control)
 find_package(catkin REQUIRED COMPONENTS
 	roscpp
 	std_msgs
+	sensor_msgs
 	cmake_modules
 )
 
