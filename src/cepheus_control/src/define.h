@@ -15,3 +15,5 @@
 #define L1	0.119						// define parameters for first link center of mass in m
 #define R1	0.062						// define parameters for first link center of mass in m
 #define L2	0.119						// define parameters for second link center of mass in m
+
+#define DT	0.05 //seconds
