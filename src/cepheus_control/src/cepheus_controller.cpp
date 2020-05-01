@@ -9,32 +9,47 @@
 #include "std_msgs/Float64.h"
 #include "std_msgs/Float64MultiArray.h"
 #include "sensor_msgs/JointState.h"
+#include "gazebo_msgs/ModelStates.h"
 #include "define.h"
 
-
-#define DESIRED_VEL 40
-#define NUM_OF_MEASUREMENTS 1000
+#define DESIRED_VEL 20  // RW_qdot_des [rad/s]
+#define NUM_OF_MEASUREMENTS 20
 
 typedef Eigen::Matrix<float, NUM_OF_MEASUREMENTS, 8> Matrix;
 
 bool reachedVel = false;
 
+float q1;       // angle of first joint [rad]
+float q2;       // angle of second joint [rad]
+float q1dot;    // rate of first joint [rad/s]
+float q2dot;    // rate of second joint [rad/s]
+float omega0;   // base angular velocity [rad/s]
+float RW_vel;   // reaction wheel velocity [rad/s]
 
-
-void velocityCheckCallback(const sensor_msgs::JointState::ConstPtr& msg, Matrix *Y, int *measurement) {
+void velocityCheckCallback(const sensor_msgs::JointState::ConstPtr& msg) {
     
-    float q1dot = msg->velocity[0];
-    float q2dot = msg->velocity[1];
-    ROS_INFO("RW_vel: %.2f | q1dot: %.5f | q2dot: %.5f", msg->velocity[2], q1dot, q2dot);
+    q1      = msg->position[0];
+    q2      = msg->position[1];
+    q1dot   = msg->velocity[0];
+    q2dot   = msg->velocity[1];
+    RW_vel  = msg->velocity[2];
+    
+    // ROS_INFO("RW_vel: %.5f | q1dot: %.5f | q2dot: %.5f", msg->velocity[2], q1dot, q2dot);
+    // ROS_INFO("q1: %.2f | q2: %.5f", q1, q2);
 
-    if (!reachedVel && msg->velocity[2] >= DESIRED_VEL) {
+    if (!reachedVel && RW_vel >= DESIRED_VEL)
         reachedVel = true;
-    }
     else if (reachedVel) {
-
-        ROS_INFO("Measurement number: %d | q1dot: %.5f, q2dot: %.5f", *measurement, q1dot, q2dot);
+        // ROS_INFO("Measurement number: %d | q1dot: %.5f, q2dot: %.5f", *measurement, q1dot, q2dot);
     }
 }
+
+void positionCheckCallback(const gazebo_msgs::ModelStates::ConstPtr& msg) {
+
+    omega0 = msg->twist[1].angular.z;
+    // ROS_INFO("angular twist z: %.5f", omega0);
+}
+
 
 int main(int argc, char **argv) {
 
@@ -50,25 +65,32 @@ int main(int argc, char **argv) {
 
     double frequency = (float)1/DT;
 
-    std::cout << "M0 = " << M0 << std::endl\
-         << "M1 = " << M1 << std::endl\
-         << "M2 = " << M2 << std::endl\
-         << "M = " << M << std::endl\
-         << "RH = " << RH << std::endl\
-         << "I0 = " << I0 << std::endl\
-         << "I1 = " << I1 << std::endl\
-         << "I2 = " << I2 << std::endl\
-         << "R0X = " << R0X << std::endl\
-         << "R0Y = " << R0Y << std::endl\
-         << "L1 = " << L1 << std::endl\
-         << "R1 = " << R1 << std::endl\
-         << "L2 = " << L2 << std::endl\
-         << "frequency = " << frequency << std::endl;
+    double hrw = Irw * DESIRED_VEL;
+    // std::cout << "M0 = " << M0 << std::endl\
+    //      << "M1 = " << M1 << std::endl\
+    //      << "M2 = " << M2 << std::endl\
+    //      << "M = " << M << std::endl\
+    //      << "RH = " << RH << std::endl\
+    //      << "I0 = " << I0 << std::endl\
+    //      << "I1 = " << I1 << std::endl\
+    //      << "I2 = " << I2 << std::endl\
+    //      << "R0X = " << R0X << std::endl\
+    //      << "R0Y = " << R0Y << std::endl\
+    //      << "L1 = " << L1 << std::endl\
+    //      << "R1 = " << R1 << std::endl\
+    //      << "L2 = " << L2 << std::endl\
+    //      << "frequency = " << frequency << std::endl;
 
 
+    q1 = q2 = q1dot = q2dot = omega0 = 0.0;
+    
     // Eigen Matrix
-    Matrix Y;
+    Eigen::Matrix<float, NUM_OF_MEASUREMENTS, 8> Y;
 
+    // define Hrw matrix as a Nx1 column vector and all components equal to hrw
+    Eigen::Matrix<float, NUM_OF_MEASUREMENTS, 1> Hcm;
+    for (int i = 0; i < NUM_OF_MEASUREMENTS; ++i)
+        Hcm(i, 1) = hrw;
 
     // ros init
     ros::init(argc, argv, "cepheus_controller_node");
@@ -83,6 +105,7 @@ int main(int argc, char **argv) {
     std_msgs::Float64 msg_RW;
     std_msgs::Float64 msg_LE;
     std_msgs::Float64 msg_LS;
+    
     // init messages 
     msg_RW.data = 0.1;
     // msg_LE.data = 0.1;
@@ -91,7 +114,8 @@ int main(int argc, char **argv) {
     int currentMeasurement = 0;
 
     // subscribers
-    ros::Subscriber RW_velocity_sub = n.subscribe<sensor_msgs::JointState>("/cepheus/joint_states", 1, boost::bind(&velocityCheckCallback, _1, &Y, &currentMeasurement));
+    ros::Subscriber RW_velocity_sub = n.subscribe<sensor_msgs::JointState>("/cepheus/joint_states", 1, velocityCheckCallback);
+    ros::Subscriber position_sub = n.subscribe<gazebo_msgs::ModelStates>("/gazebo/model_states", 1, positionCheckCallback);
 
     
     ros::Rate loop_rate(frequency);
@@ -110,14 +134,33 @@ int main(int argc, char **argv) {
             // keep RW desired velocity
             msg_RW.data = DESIRED_VEL;
             
-            ROS_INFO("------------------------");
+            ROS_INFO("-------------------------------------------");
             ROS_INFO("current measurement number: %d", currentMeasurement+1);
+            ROS_INFO("q1: %.3f, q2: %.3f, q1dot: %.3f, q2dot: %.3f, omega0: %.3f", q1, q2, q1dot, q2dot, omega0);
+
+            Y(currentMeasurement, 0) = (2*omega0 + q1dot) * cos(q1);
+            Y(currentMeasurement, 1) = (2*omega0 + q1dot + q2dot) * cos(q1+q2);
+            Y(currentMeasurement, 2) = (2*omega0 + q1dot) * sin(q1);
+            Y(currentMeasurement, 3) = (2*omega0 + q1dot + q2dot) * sin(q1+q2);
+            Y(currentMeasurement, 4) = omega0;
+            Y(currentMeasurement, 5) = (2*omega0 + 2*q1dot + q2dot) * cos(q2);
+            Y(currentMeasurement, 6) = omega0 + q1dot;
+            Y(currentMeasurement, 7) = omega0 + q1dot + q2dot;
 
             currentMeasurement++;
         }
         else if (currentMeasurement >= NUM_OF_MEASUREMENTS) {
 
-            RW_velocity_sub.shutdown();
+            // RW_velocity_sub.shutdown();
+            // std::cout << Y << std::endl;
+            
+            // Eigen::ColPivHouseholderQR<Eigen::MatrixXf> qr_decomp(Y);
+            // Eigen::FullPivLU<Matrix> lu_decomp(Y);
+            // auto fs = Y.colPivHouseholderQr();
+            // auto rank = qr_decomp.rank();
+            // ROS_INFO("rank = %ld", rank);
+
+
         }
         else {
             msg_RW.data += 0.1;
