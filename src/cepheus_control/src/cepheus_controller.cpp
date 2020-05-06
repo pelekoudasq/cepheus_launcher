@@ -13,7 +13,7 @@
 #include "define.h"
 
 #define DESIRED_VEL 20  // RW_qdot_des [rad/s]
-#define NUM_OF_MEASUREMENTS 20
+#define NUM_OF_MEASUREMENTS 1000
 
 typedef Eigen::Matrix<float, NUM_OF_MEASUREMENTS, 8> Matrix;
 
@@ -90,7 +90,7 @@ int main(int argc, char **argv) {
     // define Hrw matrix as a Nx1 column vector and all components equal to hrw
     Eigen::Matrix<float, NUM_OF_MEASUREMENTS, 1> Hcm;
     for (int i = 0; i < NUM_OF_MEASUREMENTS; ++i)
-        Hcm(i, 1) = hrw;
+        Hcm(i, 0) = hrw;
 
     // ros init
     ros::init(argc, argv, "cepheus_controller_node");
@@ -154,11 +154,11 @@ int main(int argc, char **argv) {
             // RW_velocity_sub.shutdown();
             // std::cout << Y << std::endl;
             
-            // Eigen::ColPivHouseholderQR<Eigen::MatrixXf> qr_decomp(Y);
+            Eigen::ColPivHouseholderQR<Eigen::MatrixXf> qr_decomp(Y);
             // Eigen::FullPivLU<Matrix> lu_decomp(Y);
             // auto fs = Y.colPivHouseholderQr();
-            // auto rank = qr_decomp.rank();
-            // ROS_INFO("rank = %ld", rank);
+            auto rank = qr_decomp.rank();
+            ROS_INFO("rank = %ld", rank);
 
 
         }
