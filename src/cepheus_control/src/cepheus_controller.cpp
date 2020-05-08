@@ -32,22 +32,21 @@ void velocityCheckCallback(const sensor_msgs::JointState::ConstPtr& msg) {
     q2      = msg->position[1];
     q1dot   = msg->velocity[0];
     q2dot   = msg->velocity[1];
-    RW_vel  = msg->velocity[2];
+    RW_vel  = msg->velocity[4];
     
-    // ROS_INFO("RW_vel: %.5f | q1dot: %.5f | q2dot: %.5f", msg->velocity[2], q1dot, q2dot);
-    // ROS_INFO("q1: %.2f | q2: %.5f", q1, q2);
+    // ROS_INFO("RW_vel: %.5f | q1: %.5f | q2: %.5f | q1dot: %.5f | q2dot: %.5f", RW_vel, q1, q2, q1dot, q2dot);
 
     if (!reachedVel && RW_vel >= DESIRED_VEL)
         reachedVel = true;
     else if (reachedVel) {
-        // ROS_INFO("Measurement number: %d | q1dot: %.5f, q2dot: %.5f", *measurement, q1dot, q2dot);
+        // ROS_INFO("Measurement number: %d");
     }
 }
 
 void positionCheckCallback(const gazebo_msgs::ModelStates::ConstPtr& msg) {
 
-    omega0 = msg->twist[1].angular.z;
-    // ROS_INFO("angular twist z: %.5f", omega0);
+    omega0 = msg->twist[1].angular.y;
+    // ROS_INFO("angular twist y: %.5f", omega0);
 }
 
 
@@ -66,6 +65,9 @@ int main(int argc, char **argv) {
     double frequency = (float)1/DT;
 
     double hrw = Irw * DESIRED_VEL;
+
+    /* print defined values */
+
     // std::cout << "M0 = " << M0 << std::endl\
     //      << "M1 = " << M1 << std::endl\
     //      << "M2 = " << M2 << std::endl\
@@ -84,36 +86,36 @@ int main(int argc, char **argv) {
 
     q1 = q2 = q1dot = q2dot = omega0 = 0.0;
     
-    // Eigen Matrix
+    /* Eigen Matrix */
     Eigen::Matrix<float, NUM_OF_MEASUREMENTS, 8> Y;
 
-    // define Hrw matrix as a Nx1 column vector and all components equal to hrw
+    /* Define Hrw matrix as a Nx1 column vector and all components equal to hrw */
     Eigen::Matrix<float, NUM_OF_MEASUREMENTS, 1> Hcm;
     for (int i = 0; i < NUM_OF_MEASUREMENTS; ++i)
         Hcm(i, 0) = hrw;
 
-    // ros init
+    /* ros init */
     ros::init(argc, argv, "cepheus_controller_node");
     ros::NodeHandle n;
 
-    // publishers
+    /* Create publishers */
     ros::Publisher RW_velocity_pub = n.advertise<std_msgs::Float64>("/cepheus/reaction_wheel_velocity_controller/command", 1);
     ros::Publisher LE_position_pub = n.advertise<std_msgs::Float64>("/cepheus/left_elbow_position_controller/command", 1);
     ros::Publisher LS_position_pub = n.advertise<std_msgs::Float64>("/cepheus/left_shoulder_position_controller/command", 1);
 
-    // messages to publish
+    /* messages to publish */
     std_msgs::Float64 msg_RW;
     std_msgs::Float64 msg_LE;
     std_msgs::Float64 msg_LS;
     
-    // init messages 
+    /* init messages */ 
     msg_RW.data = 0.1;
     // msg_LE.data = 0.1;
     // msg_LS.data = 0.1;
 
     int currentMeasurement = 0;
 
-    // subscribers
+    /* Create subscribers */
     ros::Subscriber RW_velocity_sub = n.subscribe<sensor_msgs::JointState>("/cepheus/joint_states", 1, velocityCheckCallback);
     ros::Subscriber position_sub = n.subscribe<gazebo_msgs::ModelStates>("/gazebo/model_states", 1, positionCheckCallback);
 
@@ -131,10 +133,11 @@ int main(int argc, char **argv) {
 
         if (reachedVel && (currentMeasurement < NUM_OF_MEASUREMENTS)) {
             
-            // keep RW desired velocity
+            /* Keep RW desired velocity while taking measurements */
+
             msg_RW.data = DESIRED_VEL;
             
-            ROS_INFO("-------------------------------------------");
+            ROS_INFO("-----------------------------------------------------------------");
             ROS_INFO("current measurement number: %d", currentMeasurement+1);
             ROS_INFO("q1: %.3f, q2: %.3f, q1dot: %.3f, q2dot: %.3f, omega0: %.3f", q1, q2, q1dot, q2dot, omega0);
 
@@ -151,7 +154,10 @@ int main(int argc, char **argv) {
         }
         else if (currentMeasurement >= NUM_OF_MEASUREMENTS) {
 
-            // RW_velocity_sub.shutdown();
+            /* Measurements completed */
+
+            RW_velocity_sub.shutdown();
+            position_sub.shutdown();
             // std::cout << Y << std::endl;
             
             Eigen::ColPivHouseholderQR<Eigen::MatrixXf> qr_decomp(Y);
@@ -160,7 +166,7 @@ int main(int argc, char **argv) {
             auto rank = qr_decomp.rank();
             ROS_INFO("rank = %ld", rank);
 
-
+            // break;
         }
         else {
             msg_RW.data += 0.1;
