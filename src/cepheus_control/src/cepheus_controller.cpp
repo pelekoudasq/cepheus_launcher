@@ -110,8 +110,8 @@ int main(int argc, char **argv) {
     
     /* init messages */ 
     msg_RW.data = 0.1;
-    // msg_LE.data = 0.1;
-    // msg_LS.data = 0.1;
+    msg_LE.data = 0.1;
+    msg_LS.data = 0.1;
 
     int currentMeasurement = 0;
 
@@ -126,10 +126,15 @@ int main(int argc, char **argv) {
     while (ros::ok()) {
 
         RW_velocity_pub.publish(msg_RW);
-        // LE_position_pub.publish(msg_LE);
-        // LS_position_pub.publish(msg_LS);
+        LE_position_pub.publish(msg_LE);
+        LS_position_pub.publish(msg_LS);
         
         ros::spinOnce();
+
+        // arm joins sinusoidal movement
+        msg_LE.data = 3 * sin(ros::Time::now().toSec());
+        msg_LS.data = -1 * sin(ros::Time::now().toSec());
+
 
         if (reachedVel && (currentMeasurement < NUM_OF_MEASUREMENTS)) {
             
@@ -170,8 +175,6 @@ int main(int argc, char **argv) {
         }
         else {
             msg_RW.data += 0.1;
-            msg_LE.data += 0.01;
-            msg_LS.data += 0.01;
         }
 
         loop_rate.sleep();
