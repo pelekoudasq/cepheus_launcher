@@ -10,7 +10,7 @@
 #include "std_msgs/Float64.h"
 #include "std_msgs/Float64MultiArray.h"
 #include "sensor_msgs/JointState.h"
-#include "gazebo_msgs/ModelStates.h"
+#include "gazebo_msgs/LinkStates.h"
 #include "define.h"
 
 #include <typeinfo>
@@ -63,10 +63,10 @@ void velocityCheckCallback(const sensor_msgs::JointState::ConstPtr& msg) {
     }
 }
 
-void positionCheckCallback(const gazebo_msgs::ModelStates::ConstPtr& msg) {
+void positionCheckCallback(const gazebo_msgs::LinkStates::ConstPtr& msg) {
 
-    omega0 = msg->twist[1].angular.z;
-    // ROS_INFO("angular twist y: %.5f", omega0);
+    omega0 = msg->twist[3].angular.z;
+    // ROS_INFO("angular twist z: %.5f", omega0);
 }
 
 
@@ -141,7 +141,7 @@ int main(int argc, char **argv) {
 
     /* Create subscribers */
     ros::Subscriber RW_velocity_sub = n.subscribe<sensor_msgs::JointState>("/cepheus/joint_states", 1, velocityCheckCallback);
-    ros::Subscriber position_sub = n.subscribe<gazebo_msgs::ModelStates>("/gazebo/model_states", 1, positionCheckCallback);
+    ros::Subscriber position_sub = n.subscribe<gazebo_msgs::LinkStates>("/gazebo/link_states", 1, positionCheckCallback);
 
     
     ros::Rate loop_rate(frequency);
@@ -198,7 +198,7 @@ int main(int argc, char **argv) {
                 // std::cout << Y << std::endl;
                 auto pinv = pseudoInverse(Y);
                 // auto pinv = Y.completeOrthogonalDecomposition().pseudoInverse();
-                std::cout << Y.rows() << " " << Y.cols() << " " << pinv.rows() << " " << pinv.cols() <<'\n';
+                // std::cout << Y.rows() << " " << Y.cols() << " " << pinv.rows() << " " << pinv.cols() <<'\n';
 
                 auto pi_est = pinv*Hcm;
                 std::ofstream file;
@@ -207,8 +207,7 @@ int main(int argc, char **argv) {
                     double e = 0.0;
                     for (int i = 0; i < 8; ++i) {
                         e = (robotInertialParameters(i, 0) - pi_est(i, 0))/robotInertialParameters(i, 0)*100;
-                        file << "Robot Parameter " << i << ": " << robotInertialParameters(i, 0) << ", LS estimation: " << pi_est(i, 0) << ", error(%): "<< e << '\n';
-                        
+                        file << "Robot Parameter " << i << ": " << robotInertialParameters(i, 0) << ", LS estimation: " << pi_est(i, 0) << ", error(%): "<< e << '\n';     
                     }
                     file.close();
                 } else {
