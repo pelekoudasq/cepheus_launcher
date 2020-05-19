@@ -1,8 +1,0 @@
-Robot Parameter 0: 0.00740037, LS estimation: 0.0106473, error(%): -43.8747
-Robot Parameter 1: 0.00376636, LS estimation: 0.0469415, error(%): -1146.34
-Robot Parameter 2: 0.00391829, LS estimation: 0.00520988, error(%): -32.9631
-Robot Parameter 3: 0.00199419, LS estimation: -0.00242137, error(%): 221.421
-Robot Parameter 4: 0.159729, LS estimation: 0.290075, error(%): -81.6048
-Robot Parameter 5: 0.00395609, LS estimation: 0.0465766, error(%): -1077.34
-Robot Parameter 6: 0.0705329, LS estimation: -0.0489618, error(%): 169.417
-Robot Parameter 7: 0.0659837, LS estimation: -0.0723011, error(%): 209.574

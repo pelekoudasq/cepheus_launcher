@@ -65,7 +65,7 @@ void velocityCheckCallback(const sensor_msgs::JointState::ConstPtr& msg) {
 
 void positionCheckCallback(const gazebo_msgs::ModelStates::ConstPtr& msg) {
 
-    omega0 = msg->twist[1].angular.y;
+    omega0 = msg->twist[1].angular.z;
     // ROS_INFO("angular twist y: %.5f", omega0);
 }
 
