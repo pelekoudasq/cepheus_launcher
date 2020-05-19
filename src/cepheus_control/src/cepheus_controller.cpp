@@ -1,4 +1,5 @@
 #include <eigen3/Eigen/Dense>
+#include <fstream>
 #include <sstream>
 #include <cmath>
 #include <iostream>
@@ -12,10 +13,29 @@
 #include "gazebo_msgs/ModelStates.h"
 #include "define.h"
 
+#include <typeinfo>
+
 #define DESIRED_VEL 20  // RW_qdot_des [rad/s]
 #define NUM_OF_MEASUREMENTS 1000
 
-typedef Eigen::Matrix<float, NUM_OF_MEASUREMENTS, 8> Matrix;
+typedef Eigen::Matrix<float, Eigen::Dynamic, Eigen::Dynamic> Matrix;
+
+template<typename MatType>
+using PseudoInverseType = Eigen::Matrix<typename MatType::Scalar, MatType::ColsAtCompileTime, MatType::RowsAtCompileTime>;
+
+template<typename MatType>
+PseudoInverseType<MatType> pseudoInverse(const MatType &a, double epsilon = std::numeric_limits<double>::epsilon())
+{
+    using WorkingMatType = Eigen::Matrix<typename MatType::Scalar, Eigen::Dynamic, Eigen::Dynamic, 0, MatType::MaxRowsAtCompileTime, MatType::MaxColsAtCompileTime>;
+    Eigen::BDCSVD<WorkingMatType> svd(a, Eigen::ComputeThinU | Eigen::ComputeThinV);
+    svd.setThreshold(epsilon*std::max(a.cols(), a.rows()));
+    Eigen::Index rank = svd.rank();
+    Eigen::Matrix<typename MatType::Scalar, Eigen::Dynamic, MatType::RowsAtCompileTime,
+    0, Eigen::BDCSVD<WorkingMatType>::MaxDiagSizeAtCompileTime, MatType::MaxRowsAtCompileTime>
+    tmp = svd.matrixU().leftCols(rank).adjoint();
+    tmp = svd.singularValues().head(rank).asDiagonal().inverse() * tmp;
+    return svd.matrixV().leftCols(rank) * tmp;
+}
 
 bool reachedVel = false;
 
@@ -87,7 +107,8 @@ int main(int argc, char **argv) {
     q1 = q2 = q1dot = q2dot = omega0 = 0.0;
     
     /* Eigen Matrix */
-    Eigen::Matrix<float, NUM_OF_MEASUREMENTS, 8> Y;
+    Matrix Y;
+    Y.resize(NUM_OF_MEASUREMENTS, 8);
 
     /* Define Hrw matrix as a Nx1 column vector and all components equal to hrw */
     Eigen::Matrix<float, NUM_OF_MEASUREMENTS, 1> Hcm;
@@ -170,6 +191,23 @@ int main(int argc, char **argv) {
             // auto fs = Y.colPivHouseholderQr();
             auto rank = qr_decomp.rank();
             ROS_INFO("rank = %ld", rank);
+            if (rank == 8) {
+                // std::cout << Y << std::endl;
+                auto pinv = pseudoInverse(Y);
+                // auto pinv = Y.completeOrthogonalDecomposition().pseudoInverse();
+                std::cout << Y.rows() << " " << Y.cols() << " " << pinv.rows() << " " << pinv.cols() <<'\n';
+
+                auto pi_est = pinv*Hcm;
+                std::ofstream file;
+                file.open("/home/pelekoudas/cepheus_simulator/ls_pi_est.txt");
+                if (file.is_open()) {
+                    file << pi_est << '\n';
+                    file.close();
+                } else {
+                    std::cout << pi_est << std::endl;
+                } 
+                break;
+            }
 
             // break;
         }
