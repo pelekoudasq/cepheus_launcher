@@ -86,22 +86,25 @@ int main(int argc, char **argv) {
 
     double hrw = Irw * DESIRED_VEL;
 
-    /* print defined values */
+    /* define the robot 8 inertial parameters */
+    double pi1 = M0*R0X*((M1+M2)*L1+M2*R1)/M;
+    double pi2 = M0*R0X*M2*L2/M;
+    double pi3 = M0*R0Y*((M1+M2)*L1+M2*R1)/M;
+    double pi4 = M0*R0Y*M2*L2/M;
+    double pi5 = I0+M0*(M1+M2)*(pow(R0X, (double)2) + pow(R0Y, (double)2))/M;
+    double pi6 = M2*L2*(M0*L1+(M0+M1)*R1)/M;
+    double pi7 = I1+(M0*(M1+M2)*pow(L1, (double)2)+2*M0*M2*L1*R1+M2*(M0+M1)*pow(R1, (double)2))/M;
+    double pi8 = I2+(M2*(M0+M1)*pow(L2, (double)2))/M;
 
-    // std::cout << "M0 = " << M0 << std::endl\
-    //      << "M1 = " << M1 << std::endl\
-    //      << "M2 = " << M2 << std::endl\
-    //      << "M = " << M << std::endl\
-    //      << "RH = " << RH << std::endl\
-    //      << "I0 = " << I0 << std::endl\
-    //      << "I1 = " << I1 << std::endl\
-    //      << "I2 = " << I2 << std::endl\
-    //      << "R0X = " << R0X << std::endl\
-    //      << "R0Y = " << R0Y << std::endl\
-    //      << "L1 = " << L1 << std::endl\
-    //      << "R1 = " << R1 << std::endl\
-    //      << "L2 = " << L2 << std::endl\
-    //      << "frequency = " << frequency << std::endl;
+    Eigen::Matrix<double, 8, 1> robotInertialParameters;
+    robotInertialParameters(0, 0) = pi1;
+    robotInertialParameters(1, 0) = pi2;
+    robotInertialParameters(2, 0) = pi3;
+    robotInertialParameters(3, 0) = pi4;
+    robotInertialParameters(4, 0) = pi5;
+    robotInertialParameters(5, 0) = pi6;
+    robotInertialParameters(6, 0) = pi7;
+    robotInertialParameters(7, 0) = pi8;
 
 
     q1 = q2 = q1dot = q2dot = omega0 = 0.0;
@@ -201,7 +204,12 @@ int main(int argc, char **argv) {
                 std::ofstream file;
                 file.open("/home/pelekoudas/cepheus_simulator/ls_pi_est.txt");
                 if (file.is_open()) {
-                    file << pi_est << '\n';
+                    double e = 0.0;
+                    for (int i = 0; i < 8; ++i) {
+                        e = (robotInertialParameters(i, 0) - pi_est(i, 0))/robotInertialParameters(i, 0)*100;
+                        file << "Robot Parameter " << i << ": " << robotInertialParameters(i, 0) << ", LS estimation: " << pi_est(i, 0) << ", error(%): "<< e << '\n';
+                        
+                    }
                     file.close();
                 } else {
                     std::cout << pi_est << std::endl;

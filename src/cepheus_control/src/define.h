@@ -2,7 +2,7 @@
 
 #define PI	3.14159265
 
-#define M0 	14.3						// define the robot base mass in kg
+#define M0 	13.3						// define the robot base mass in kg
 #define M1	0.083						// define the first link mass in kg
 #define M2	0.187						// define the second link mass in kg
 // M 	14.57		// M0+M1+M2			// define the robot total mass
