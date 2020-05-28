@@ -1,0 +1,25 @@
+{
+  "name": "ros-server",
+  "version": "1.0.0",
+  "description": "",
+  "main": "ros.js",
+  "dependencies": {
+    "express": "^4.17.1",
+    "rosnodejs": "^3.0.2",
+    "shelljs": "^0.8.4"
+  },
+  "devDependencies": {},
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/pelekoudasq/cepheus_simulator.git"
+  },
+  "author": "Ioannis Pelekoudas",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/pelekoudasq/cepheus_simulator/issues"
+  },
+  "homepage": "https://github.com/pelekoudasq/cepheus_simulator#readme"
+}
