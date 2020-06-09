@@ -6,11 +6,14 @@
   "dependencies": {
     "express": "^4.17.1",
     "rosnodejs": "^3.0.2",
-    "shelljs": "^0.8.4"
+    "shelljs": "^0.8.4",
+    "socket.io": "^2.3.0"
   },
-  "devDependencies": {},
+  "devDependencies": {
+    "nodemon": "^2.0.4"
+  },
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "dev": "nodemon ros"
   },
   "repository": {
     "type": "git",
