@@ -13,11 +13,11 @@ module.exports = function(io) {
 		shell.exec('./start.sh', function(code, stdout, stderr) {
 			shell.cd('./src/cepheus_interface/server');
 			if (stderr) {
-				// res.send(stderr);
+				res.send({ status: 'error' });
 				io.emit('status', 'error');
 				io.emit('log', stderr);
 			}
-			// res.json({status : stdout});
+			res.json({ status: 'running' });
 			io.emit('status', 'running');
 			io.emit('log', stdout);
 
@@ -32,13 +32,13 @@ module.exports = function(io) {
 	});
 
 	router.post('/stop', function(req, res, next) {	
-		shell.exec('rosnode kill -a', function(code, stdout, stderr) {
+		shell.exec('killall -9 gzserver gzclient; rosnode kill -a', function(code, stdout, stderr) {
 			if (stderr) {
-				// res.send(stderr);
+				res.send({ status: 'error' });
 				io.emit('status', 'error');
 				io.emit('log', stderr);
 			}
-			// res.json({status : stdout});
+			res.json({ status: 'stopped' });
 			io.emit('status', 'stopped');
 			io.emit('log', stdout);
 		});

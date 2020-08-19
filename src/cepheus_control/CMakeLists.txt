@@ -12,6 +12,7 @@ find_package(catkin REQUIRED COMPONENTS
 	std_msgs
 	sensor_msgs
 	cmake_modules
+	web_video_server
 )
 
 find_package(Eigen3 REQUIRED)
