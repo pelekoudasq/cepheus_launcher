@@ -7,9 +7,11 @@ import Control from './components/Control';
 function App() {
 	return (
 		<div className="App">
-			<Switch>
-				<Route exact path="/" component={Control} />
-			</Switch>
+			<div className="row container-fluid">
+				<Switch>
+					<Route exact path="/" component={Control} />
+				</Switch>
+			</div>
 		</div>
 	);
 }

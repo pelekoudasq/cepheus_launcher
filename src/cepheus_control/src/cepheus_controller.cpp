@@ -79,8 +79,8 @@ int main(int argc, char **argv) {
     double I0  = ((double)1/2)*(M0*pow(RH, (double)2));
     double I1  = 3.46*pow(EulerConstant, (double)-4);
     double I2  = 3.46*pow(EulerConstant, (double)-4);
-    double R0X = 0.1954*cos(27.9*PI/180);
-    double R0Y = 0.1954*sin(27.9*PI/180);
+    // double R0X = 0.1954*cos(27.9*PI/180);
+    // double R0Y = 0.1954*sin(27.9*PI/180);
 
     double frequency = (float)1/DT;
 

@@ -2,6 +2,7 @@
 <robot name="cepheus" xmlns:xacro="http://www.ros.org/wiki/xacro">
 	<xacro:include filename="$(find cepheus_description)/urdf/cepheus.gazebo" />
 	<xacro:include filename="$(find cepheus_description)/urdf/materials.xacro" />
+	<xacro:property name="camera_link" value="0.05" /> <!-- Size of square 'camera' box -->
 	<link name="world">
 		<!-- <joint name="world_joint" type="continuous">
 			<axis xyz="0 0 1"/>
@@ -120,14 +121,14 @@
 			<origin
 				xyz="0.0024 0.02937 0.15711"
 				rpy="0 0 0" />
-			<mass value="7.11891369052411" />
+			<mass value="13.3" />
 			<inertia
-				ixx="0.0937165866660239"
-				ixy="-0.004838152027527"
-				ixz="-0.00397891305009112"
-				iyy="0.0905199286322999"
-				iyz="-0.00257712868335304"
-				izz="0.0755866683160163" />
+				ixx="0"
+				ixy="0"
+				ixz="0"
+				iyy="0"
+				iyz="0"
+				izz="0.160875" />
 		</inertial>
 		<visual>
 			<origin
@@ -209,16 +210,16 @@
 	<link name="left_arm">
 		<inertial>
 			<origin
-				xyz="0.10516 0.00268 0.00996"
+				xyz="0.119 0 0"
 				rpy="0 0 0" />
-			<mass value="0.07974" />
+			<mass value="0.083" />
 			<inertia
-				ixx="0.0971318625270812"
-				ixy="0.00469370636895255"
-				ixz="-0.000908920687249813"
-				iyy="0.0755866683160163"
-				iyz="0.000665178045940108"
-				izz="0.0871046527712426" />
+				ixx="0"
+				ixy="0"
+				ixz="0"
+				iyy="0"
+				iyz="0"
+				izz="0.000346" />
 		</inertial>
 		<visual>
 			<origin
@@ -250,7 +251,7 @@
 	</transmission>
 	<joint name="left_elbow" type="revolute">
 		<origin
-			xyz="0.18120 -0.01176 -0.002"
+			xyz="0.1810 0 0"
 			rpy="0 0 0" />
 		<parent link="left_arm" />
 		<child link="left_forearm" />
@@ -267,16 +268,16 @@
 	<link name="left_forearm">
 		<inertial>
 			<origin
-				xyz="0.06831 0.00878 0.01558"
+				xyz="0.119 0 0"
 				rpy="0 0 0" />
-			<mass value="0.06392" />
+			<mass value="0.187" />
 			<inertia
-				ixx="1"
-				ixy="1"
-				ixz="1"
-				iyy="1"
-				iyz="1"
-				izz="1" />
+				ixx="0"
+				ixy="0"
+				ixz="0"
+				iyy="0"
+				iyz="0"
+				izz="0.000346" />
 		</inertial>
 		<visual>
 			<origin
@@ -305,7 +306,7 @@
 			<hardwareInterface>EffortJointInterface</hardwareInterface>
 			<mechanicalReduction>1</mechanicalReduction>
 		</actuator>
-	</transmission>
+	</transmission><!-- 
 	<joint name="left_wrist" type="fixed">
 		<origin
 			xyz="0.15965 0.01176 -0.00838"
@@ -353,5 +354,35 @@
 				<box size="0.085 0.07 0.05"/>
 			</geometry>
 		</collision>
+	</link> -->
+	<joint name="camera_joint" type="fixed">
+		<axis xyz="0 1 0" />
+		<origin xyz="0 0 3.0" rpy="0 0 0"/>
+		<parent link="world"/>
+		<child link="camera_link"/>
+	</joint>
+
+	<!-- Camera -->
+	<link name="camera_link">
+		<collision>
+			<origin xyz="0 0 0" rpy="0 0 0"/>
+			<geometry>
+				<box size="${camera_link} ${camera_link} ${camera_link}"/>
+			</geometry>
+		</collision>
+
+		<visual>
+			<origin xyz="0 0 0" rpy="0 0 0"/>
+			<geometry>
+				<box size="${camera_link} ${camera_link} ${camera_link}"/>
+			</geometry>
+			<material name="red"/>
+		</visual>
+
+		<inertial>
+			<mass value="1e-5" />
+			<origin xyz="0 0 0" rpy="0 0 0"/>
+			<inertia ixx="1e-6" ixy="0" ixz="0" iyy="1e-6" iyz="0" izz="1e-6" />
+		</inertial>
 	</link>
 </robot>

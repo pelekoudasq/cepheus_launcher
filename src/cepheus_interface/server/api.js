@@ -16,11 +16,11 @@ module.exports = function(io) {
 				res.send({ status: 'error' });
 				io.emit('status', 'error');
 				io.emit('log', stderr);
+			} else {
+				res.json({ status: 'running' });
+				io.emit('status', 'running');
+				io.emit('log', stdout);
 			}
-			res.json({ status: 'running' });
-			io.emit('status', 'running');
-			io.emit('log', stdout);
-
 			// setTimeout(function () {
 			// 	const nh = rosnodejs.nh;
 			// 	const sub = nh.subscribe('/cepheus/joint_states', 'sensor_msgs/JointState', (msg) => {
@@ -37,10 +37,11 @@ module.exports = function(io) {
 				res.send({ status: 'error' });
 				io.emit('status', 'error');
 				io.emit('log', stderr);
+			} else {
+				res.json({ status: 'stopped' });
+				io.emit('status', 'stopped');
+				io.emit('log', stdout);
 			}
-			res.json({ status: 'stopped' });
-			io.emit('status', 'stopped');
-			io.emit('log', stdout);
 		});
 	});
 
