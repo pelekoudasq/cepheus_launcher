@@ -6,10 +6,10 @@
 		</plugin>
 	</gazebo>
 	<gazebo reference="cepheus">
-		<material>Gazebo/Grey</material>
+		<material>Gazebo/White</material>
 	</gazebo>
 	<gazebo reference="reaction_wheel">
-		<material>Gazebo/White</material>
+		<material>Gazebo/Red</material>
 	</gazebo>
 	<gazebo reference="left_arm">
 		<material>Gazebo/Blue</material>

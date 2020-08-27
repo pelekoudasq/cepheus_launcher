@@ -3,7 +3,7 @@ import { withRouter } from 'react-router';
 // import { Link } from 'react-router-dom';
 import io from 'socket.io-client';
 import ROSLIB from 'roslib';
-
+// import 'mjpegcanvas';
 import '../App.css';
 
 
@@ -21,6 +21,16 @@ function Control() {
 	const [positionX, setPositionX] = useState("");
 	const [positionY, setPositionY] = useState("");
 
+  // function init() {
+  //   // Create the main viewer.
+  //   var viewer = new MJPEGCANVAS.Viewer({
+  //     divID : 'mjpeg',
+  //     host : 'localhost',
+  //     width : 640,
+  //     height : 480,
+  //     topic : '/wide_stereo/left/image_color'
+  //   });
+  // }
 
 	useEffect(() => {
 
@@ -180,16 +190,18 @@ function Control() {
 			</div>
 			<div className="row">
 				<div className="col-md-8 p-1">
-					<div className="content-section container shadow mb-6" style={{height: '600px'}}>
+					<div className="content-section container shadow mb-6" style={{height: '715px'}}>
 						<div className="border-bottom pt-1 mb-1">
 							<p className="h6">Top Down View</p>
 						</div>
-						Time: {}
+						Time: {/*clock topic*/}
 						<br/>
-						<br/>
-						<br/>
-						<br/>
-						Live feed
+						{(started && socketUp) && 
+							<iframe
+								className="w-100"
+								style={{position: 'relative', height: '90%'}}
+								src="http://localhost:8080/stream?topic=/rrbot/camera1/image_raw&width=1093&height=600"/>
+							}
 					</div>
 					<div className="px-3 mx-3" style={{ textAlign: 'center' }}>
 						{!started &&
