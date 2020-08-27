@@ -4,6 +4,19 @@ ros-gazebo project for [Space Robotics Team](http://csl-ep.mech.ntua.gr/index.ph
 
 ROS version: melodic
 
+Use Control Panel UI
+--------------------
+```bash
+cd {PATH}/src/cepheus_interface/server
+npm install
+npm run dev
+# New terminal/tab
+cd {PATH}/src/cepheus_interface/web_ui
+npm install
+npm start
+```
+Then visit http://localhost:3000/
+
 Build
 -----
 ```bash
