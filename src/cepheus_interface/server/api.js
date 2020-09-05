@@ -9,8 +9,9 @@ module.exports = function(io) {
 	const router = express.Router();
 	
 	router.post('/start', function(req, res, next) {
+		var controller = req.body.controller ? true : false;
 		shell.cd('../../..');
-		shell.exec('./start.sh', function(code, stdout, stderr) {
+		shell.exec(`./start.sh ${controller}`, function(code, stdout, stderr) {
 			shell.cd('./src/cepheus_interface/server');
 			if (stderr) {
 				res.send({ status: 'error' });

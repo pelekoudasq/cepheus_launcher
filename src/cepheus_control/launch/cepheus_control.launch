@@ -3,23 +3,43 @@
 		<arg name="port" value="9090"/>
 	</include>
 	<rosparam file="$(find cepheus_control)/config/cepheus_control.yaml" command="load"/>
-	<node name="controller_spawner" pkg="controller_manager"
-		type="spawner" respawn="false"
-		output="screen" ns="/cepheus"
+	<node
+		name="controller_spawner"
+		pkg="controller_manager"
+		type="spawner"
+		respawn="false"
+		output="screen"
+		ns="/cepheus"
 		args="joint_state_controller left_shoulder_position_controller
 		left_elbow_position_controller reaction_wheel_velocity_controller p1_position_controller p2_position_controller"/>
-	<node name="robot_state_publisher" pkg="robot_state_publisher"
-		type="robot_state_publisher" respawn="false" output="screen">
-		<param name="robot_description" command="$(find xacro)/xacro '$(find
-			cepheus_description)/urdf/cepheus.xacro'" />
-		<remap from="/joint_states" to="/cepheus/joint_states" />
+	<node
+		name="robot_state_publisher"
+		pkg="robot_state_publisher"
+		type="robot_state_publisher"
+		respawn="false"
+		output="screen">
+		<param
+			name="robot_description"
+			command="$(find xacro)/xacro '$(find cepheus_description)/urdf/cepheus.xacro'" />
+		<remap 
+			from="/joint_states"
+			to="/cepheus/joint_states" />
 	</node>
 	<arg name="address" default="localhost"/>
 	<arg name="port" default="8080"/>
-	<node pkg="web_video_server" type="web_video_server" name="web_video_server">
+	<node
+		pkg="web_video_server"
+		type="web_video_server"
+		name="web_video_server">
 		<param name="address" value="$(arg address)"/>
 		<param name="port" value="$(arg port)"/>
 	</node>
-<!-- 	<node name="cepheus_controller" pkg="cepheus_control" type="cepheus_controller_node" output="screen" required="true">
-	</node> -->
+	<node
+		name="cepheus_controller"
+		pkg="cepheus_control"
+		type="cepheus_controller_node"
+		output="screen"
+		required="true"
+		if="$(arg controller)">
+	</node>
 </launch>
