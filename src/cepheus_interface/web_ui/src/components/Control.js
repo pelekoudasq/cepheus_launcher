@@ -274,7 +274,9 @@ function Control() {
 										id="telemetrySelector"
 										disabled={started}>
 										<option value="false">Position</option>
-										<option value="false">RW velocity</option>
+										<option value="false">RW Velocity</option>
+										<option value="false">Shoulder Velocity</option>
+										<option value="false">Elbow Velocity</option>
 									</select>
 									<label htmlFor="plotSelector">Select Plot</label>
 									<select
@@ -385,7 +387,7 @@ function Control() {
 							</div>
 						}
 					</div>
-					<div className="content-section container shadow mb-6" style={{height: logs ? '380px' : 'auto'}}>
+					<div className="content-section container shadow mb-6">
 						<div className="border-bottom pt-1 mb-3">
 							<p className="h6">
 								<input
@@ -398,9 +400,11 @@ function Control() {
 							</p>
 						</div>
 						{logs &&
-							<small className="float-left" style={{whiteSpace: 'pre-line'}}>
-								{response}
-							</small>
+							<div className="overflow-auto">
+								<small className="float-left" style={{whiteSpace: 'pre-line'}}>
+									{response}
+								</small>
+							</div>
 						}
 					</div>
 				</div>

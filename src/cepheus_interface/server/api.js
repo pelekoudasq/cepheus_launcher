@@ -33,7 +33,7 @@ module.exports = function(io) {
 	});
 
 	router.post('/stop', function(req, res, next) {	
-		shell.exec('killall -9 gzserver gzclient; rosnode kill -a', function(code, stdout, stderr) {
+		shell.exec('killall -9 gzserver gzclient; rosnode kill -a; killall rosmaster', function(code, stdout, stderr) {
 			if (stderr) {
 				res.send({ status: 'error' });
 				io.emit('status', 'error');
