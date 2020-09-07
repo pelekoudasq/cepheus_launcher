@@ -11,13 +11,17 @@ var ros;
 
 function Control() {
 
+	const [panel, setPanel] = useState(0);
+	const [lock, setLock] = useState(false);
+
+
 	const [response, setResponse] = useState("");
 	const [started, setStarted] = useState("");
-	const [loading, setLoading] = useState("");
+	const [loading, setLoading] = useState(false);
 	const [override, setOverride] = useState(false);
 	const [logs, setLogs] = useState(false);
 	const [ignite, setIgnite] = useState(true);
-	const [socketUp, setSocketUp] = useState("");
+	const [socketUp, setSocketUp] = useState(false);
 
 	const [controller, setController] = useState(false);
 	const [rw_velocity, setRWVelocity] = useState("");
@@ -26,25 +30,12 @@ function Control() {
 	const [positionX, setPositionX] = useState("");
 	const [positionY, setPositionY] = useState("");
 
-  // function init() {
-  //   // Create the main viewer.
-  //   var viewer = new MJPEGCANVAS.Viewer({
-  //     divID : 'mjpeg',
-  //     host : 'localhost',
-  //     width : 640,
-  //     height : 480,
-  //     topic : '/wide_stereo/left/image_color'
-  //   });
-  // }
+	const [sec, setTimeSec] = useState(0);
+	const [nsec, setTimeNsec] = useState(0);
 
 	useEffect(() => {
 
 		const socket = io('http://localhost:9000');
-
-		// setOverride(false);
-		// setLogs(false);
-		// setController(false);
-		// setIgnite(true);
 
 		socket.on('status', data => {
 			if (data === 'running') {
@@ -55,12 +46,13 @@ function Control() {
 				setLoading(false);
 				setStarted(false);
 			}
-
 		});
 
 		socket.on('log', data => {
 			setResponse(data);
 		});
+
+		
 
 	}, []);
 
@@ -68,8 +60,6 @@ function Control() {
 	const startRobot = (e) => {
 
 		e.preventDefault();
-		setLoading(true);
-		setSocketUp(false);
 
 		let requestOptions = {
 			mode: 'cors',
@@ -91,6 +81,21 @@ function Control() {
 				ros.on('connection', function() {
 					setSocketUp(true);
 					console.log('Connected to websocket server.');
+					var time_listener = new ROSLIB.Topic({
+						ros : ros,
+						name : '/clock',
+						messageType : 'rosgraph_msgs/Clock'
+					});
+					let interval = setInterval(() => {
+						time_listener.subscribe(function(message) {
+							setTimeSec(message.clock.secs);
+							setTimeNsec(message.clock.nsecs);
+							time_listener.unsubscribe();
+						});
+					}, 500);
+					return () => {
+						clearInterval(interval);
+					};
 				});
 
 				ros.on('error', function(error) {
@@ -107,15 +112,21 @@ function Control() {
 
 	};
 
+
 	const handleControllerSelector = (e) => {
 		setController(e.target.value);
+	}
+
+
+	const handlePanelSelector = (e) => {
+		setPanel(e.target.value);
+		setLock(true);
 	}
 
 
 	const stopRobot = (e) => {
 
 		e.preventDefault();
-		// setLoading(true);
 
 		let requestOptions = {
 			method: 'POST'
@@ -203,7 +214,33 @@ function Control() {
 	return (
 		<div className="col-md-12">
 			<div className="border-bottom pt-3 mb-2">
-				<p className="h4 text-center">Main Control Panel</p>
+				<form>
+
+
+					<div className="form-row">
+						<div className="ml-auto mr-auto col-auto">
+							<p className="h4 text-center form-group">Main Control Panel</p>
+						</div>
+						<div className="col-auto">
+							{lock &&
+								<button className="btn btn-info" onClick={e => setLock(!lock)}>
+									<i className="fa fa-unlock-alt" aria-hidden="true"></i>
+								</button>
+							}
+						</div>
+						<div className="col-auto">
+							<select
+								className="form-control mb-2" 
+								id="panelSelector"
+								value={panel}
+								onChange={handlePanelSelector}
+								disabled={lock}>
+								<option value="1">Simulation</option>
+								<option value="2">Cepheus Robot</option>
+							</select>
+						</div>
+					</div>
+				</form>
 			</div>
 			<div className="row">
 				<div className="col-md-8 p-1">
@@ -211,7 +248,7 @@ function Control() {
 						<div className="border-bottom pt-1 mb-1">
 							<p className="h6">Top Down View</p>
 						</div>
-						Time: {/*clock topic*/}
+						Simulation Time: {sec} <small>secs</small>, {nsec} <small>nsecs</small>
 						<br/>
 						{(started && socketUp) &&
 							<iframe
@@ -291,7 +328,7 @@ function Control() {
 								<button
 									type="submit"
 									disabled={loading}
-									className="btn btn-primary shadow mb-0 w-100">
+									className="btn btn-info shadow mb-0 w-100">
 									{!loading &&
 										<span>Start Robot</span>}
 									{loading &&
@@ -326,7 +363,7 @@ function Control() {
 											value={positionX}
 											onChange={e => setPositionX(e.target.value)} />
 									</div>
-									<button disabled={(!started || !socketUp)} type="submit" className="btn btn-primary  mb-2">Send Position X</button>
+									<button disabled={(!started || !socketUp)} type="submit" className="btn btn-info  mb-2">Send Position X</button>
 								</form>
 								<form className="form-inline" onSubmit={handlePositionYSubmit}>
 									<div className="form-group mx-sm-3 mb-2">
@@ -340,7 +377,7 @@ function Control() {
 											value={positionY}
 											onChange={e => setPositionY(e.target.value)} />
 									</div>
-									<button disabled={(!started || !socketUp)} type="submit" className="btn btn-primary  mb-2">Send Position Y</button>
+									<button disabled={(!started || !socketUp)} type="submit" className="btn btn-info  mb-2">Send Position Y</button>
 								</form>
 								<form className="form-inline" onSubmit={handleRWVelocitySubmit}>
 									<div className="form-group mx-sm-3 mb-2">
@@ -354,7 +391,7 @@ function Control() {
 											value={rw_velocity}
 											onChange={e => setRWVelocity(e.target.value)} />
 									</div>
-									<button disabled={(!started || !socketUp)} type="submit" className="btn btn-primary  mb-2">Send RW Velocity</button>
+									<button disabled={(!started || !socketUp)} type="submit" className="btn btn-info  mb-2">Send RW Velocity</button>
 								</form>
 								<form className="form-inline" onSubmit={handleShoulderVelocitySubmit}>
 									<div className="form-group mx-sm-3 mb-2">
@@ -368,7 +405,7 @@ function Control() {
 											value={shoulder_velocity}
 											onChange={e => setShoulderVelocity(e.target.value)} />
 									</div>
-									<button disabled={(!started || !socketUp)} type="submit" className="btn btn-primary  mb-2">Send Shoulder Velocity</button>
+									<button disabled={(!started || !socketUp)} type="submit" className="btn btn-info  mb-2">Send Shoulder Velocity</button>
 								</form>
 								<form className="form-inline" onSubmit={handleElbowVelocitySubmit}>
 									<div className="form-group mx-sm-3 mb-2">
@@ -382,7 +419,7 @@ function Control() {
 											value={elbow_velocity}
 											onChange={e => setElbowVelocity(e.target.value)} />
 									</div>
-									<button disabled={(!started || !socketUp)} type="submit" className="btn btn-primary  mb-2">Send Elbow Velocity</button>
+									<button disabled={(!started || !socketUp)} type="submit" className="btn btn-info  mb-2">Send Elbow Velocity</button>
 								</form>
 							</div>
 						}
