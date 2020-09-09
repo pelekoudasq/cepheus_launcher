@@ -25,8 +25,8 @@ function Control() {
 
 	const [controller, setController] = useState(false);
 	const [rw_velocity, setRWVelocity] = useState("");
-	const [elbow_velocity, setElbowVelocity] = useState("");
-	const [shoulder_velocity, setShoulderVelocity] = useState("");
+	const [elbow_position, setElbowPosition] = useState("");
+	const [shoulder_position, setShoulderPosition] = useState("");
 	const [positionX, setPositionX] = useState("");
 	const [positionY, setPositionY] = useState("");
 
@@ -60,6 +60,8 @@ function Control() {
 	const startRobot = (e) => {
 
 		e.preventDefault();
+		setLoading(true);
+		setLock(true);
 
 		let requestOptions = {
 			mode: 'cors',
@@ -127,6 +129,9 @@ function Control() {
 	const stopRobot = (e) => {
 
 		e.preventDefault();
+		setLoading(true);
+		setTimeSec(0);
+		setTimeNsec(0);
 
 		let requestOptions = {
 			method: 'POST'
@@ -151,33 +156,33 @@ function Control() {
 	}
 
 
-	const handleShoulderVelocitySubmit = (e) => {
+	const handleShoulderPositionSubmit = (e) => {
 
 		e.preventDefault();
-		let shoulder_vel_topic = new ROSLIB.Topic({
+		let shoulder_pos_topic = new ROSLIB.Topic({
 			ros : ros,
 			name : '/cepheus/left_shoulder_position_controller/command',
 			messageType : 'std_msgs/Float64'
 		});
-		let velocity = new ROSLIB.Message({
-			data : parseFloat(shoulder_velocity)
+		let pos = new ROSLIB.Message({
+			data : parseFloat(shoulder_position)
 		});
-		shoulder_vel_topic.publish(velocity);
+		shoulder_pos_topic.publish(pos);
 	}
 
 
-	const handleElbowVelocitySubmit = (e) => {
+	const handleElbowPositionSubmit = (e) => {
 
 		e.preventDefault();
-		let elbow_vel_topic = new ROSLIB.Topic({
+		let elbow_pos_topic = new ROSLIB.Topic({
 			ros : ros,
 			name : '/cepheus/left_elbow_position_controller/command',
 			messageType : 'std_msgs/Float64'
 		});
-		let velocity = new ROSLIB.Message({
-			data : parseFloat(elbow_velocity)
+		let pos = new ROSLIB.Message({
+			data : parseFloat(elbow_position)
 		});
-		elbow_vel_topic.publish(velocity);
+		elbow_pos_topic.publish(pos);
 	}
 
 
@@ -393,33 +398,33 @@ function Control() {
 									</div>
 									<button disabled={(!started || !socketUp)} type="submit" className="btn btn-info  mb-2">Send RW Velocity</button>
 								</form>
-								<form className="form-inline" onSubmit={handleShoulderVelocitySubmit}>
+								<form className="form-inline" onSubmit={handleShoulderPositionSubmit}>
 									<div className="form-group mx-sm-3 mb-2">
-										<label htmlFor="shoulder_vel"></label>
+										<label htmlFor="shoulder_pos"></label>
 										<input
 											className="form-control"
-											name="shoulder_velocity"
-											id="shoulder_vel"
+											name="shoulder_position"
+											id="shoulder_pos"
 											type="number"
-											placeholder="Shoulder Velocity (rad/s)"
-											value={shoulder_velocity}
-											onChange={e => setShoulderVelocity(e.target.value)} />
+											placeholder="Shoulder Position (rad)"
+											value={shoulder_position}
+											onChange={e => setShoulderPosition(e.target.value)} />
 									</div>
-									<button disabled={(!started || !socketUp)} type="submit" className="btn btn-info  mb-2">Send Shoulder Velocity</button>
+									<button disabled={(!started || !socketUp)} type="submit" className="btn btn-info  mb-2">Send Shoulder Position</button>
 								</form>
-								<form className="form-inline" onSubmit={handleElbowVelocitySubmit}>
+								<form className="form-inline" onSubmit={handleElbowPositionSubmit}>
 									<div className="form-group mx-sm-3 mb-2">
-										<label htmlFor="elbow_vel"></label>
+										<label htmlFor="elbow_pos"></label>
 										<input
 											className="form-control"
-											name="elbow_velocity"
-											id="elbow_vel"
+											name="elbow_position"
+											id="elbow_pos"
 											type="number"
-											placeholder="Elbow Velocity (rad/s)"
-											value={elbow_velocity}
-											onChange={e => setElbowVelocity(e.target.value)} />
+											placeholder="Elbow Position (rad)"
+											value={elbow_position}
+											onChange={e => setElbowPosition(e.target.value)} />
 									</div>
-									<button disabled={(!started || !socketUp)} type="submit" className="btn btn-info  mb-2">Send Elbow Velocity</button>
+									<button disabled={(!started || !socketUp)} type="submit" className="btn btn-info  mb-2">Send Elbow Position</button>
 								</form>
 							</div>
 						}
