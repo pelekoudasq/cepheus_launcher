@@ -7,5 +7,7 @@
 		<arg name="world_name" value="$(find cepheus_gazebo)/worlds/cepheus.world"/>
 		<arg name="gui" value="true"/>
 	</include>
-	<include file="$(find cepheus_control)/launch/cepheus_control.launch" pass_all_args="true"/>
+	<include file="$(find cepheus_control)/launch/cepheus_control.launch" pass_all_args="true">
+		<arg name="controller" value="$(arg controller)"/>
+	</include>
 </launch>
