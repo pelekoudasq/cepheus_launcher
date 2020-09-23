@@ -15,7 +15,7 @@
 
 #include <typeinfo>
 
-#define DESIRED_VEL 20  // RW_qdot_des [rad/s]
+#define DESIRED_VEL 40  // RW_qdot_des [rad/s]
 #define NUM_OF_MEASUREMENTS 1000
 
 typedef Eigen::Matrix<float, Eigen::Dynamic, Eigen::Dynamic> Matrix;

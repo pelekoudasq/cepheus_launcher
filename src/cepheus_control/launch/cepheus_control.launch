@@ -1,4 +1,5 @@
 <launch>
+	<arg name="controller"/>
 	<include file="$(find rosbridge_server)/launch/rosbridge_websocket.launch" > 
 		<arg name="port" value="9090"/>
 	</include>
@@ -26,7 +27,7 @@
 			to="/cepheus/joint_states" />
 	</node>
 	<arg name="address" default="localhost"/>
-	<arg name="port" default="8080"/>
+	<arg name="port" default="7575"/>
 	<node
 		pkg="web_video_server"
 		type="web_video_server"

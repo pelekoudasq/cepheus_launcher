@@ -130,14 +130,15 @@ function Control() {
 
 		e.preventDefault();
 		setLoading(true);
-		setTimeSec(0);
-		setTimeNsec(0);
 
 		let requestOptions = {
 			method: 'POST'
 		};
 
 		fetch(`http://localhost:9000/stop`, requestOptions);
+
+		setTimeSec(0);
+		setTimeNsec(0);
 	}
 
 
@@ -250,16 +251,28 @@ function Control() {
 			<div className="row">
 				<div className="col-md-8 p-1">
 					<div className="content-section container shadow mb-6" style={{height: '715px'}}>
-						<div className="border-bottom pt-1 mb-1">
-							<p className="h6">Top Down View</p>
+						<div className="border-bottom pt-1 mb-1 form-row">
+							<div className="mr-auto col-auto">
+								<p className="h6">Top Down View</p>
+							</div>
+							<div className="col-auto" >
+								<a
+									href="http://localhost:7575/stream_viewer?topic=/rrbot/camera1/image_raw"
+									target="_blank"
+									rel="noopener noreferrer"
+								>
+									<i className="fa fa-external-link" aria-hidden="true"></i>
+								</a>
+							</div>
 						</div>
 						Simulation Time: {sec} <small>secs</small>, {nsec} <small>nsecs</small>
 						<br/>
 						{(started && socketUp) &&
 							<iframe
+								title="stream"
 								className="w-100"
 								style={{position: 'relative', height: '90%'}}
-								src="http://localhost:8080/stream?topic=/rrbot/camera1/image_raw&width=1093&height=600"/>
+								src="http://localhost:7575/stream?topic=/rrbot/camera1/image_raw&width=1093&height=600"/>
 							}
 					</div>
 					<div className="px-3 mx-3" style={{ textAlign: 'center' }}>
@@ -315,10 +328,10 @@ function Control() {
 										className="form-control mb-3"
 										id="telemetrySelector"
 										disabled={started}>
-										<option value="false">Position</option>
+										<option value="false">Robot's Position</option>
 										<option value="false">RW Velocity</option>
-										<option value="false">Shoulder Velocity</option>
-										<option value="false">Elbow Velocity</option>
+										<option value="false">Shoulder Position</option>
+										<option value="false">Elbow Position</option>
 									</select>
 									<label htmlFor="plotSelector">Select Plot</label>
 									<select
