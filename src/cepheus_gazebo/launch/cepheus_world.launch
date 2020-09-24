@@ -1,4 +1,5 @@
 <launch>
+	<arg name="controller" default="false"/>
 	<param name="robot_description" command="$(find xacro)/xacro '$(find
 	cepheus_description)/urdf/cepheus.xacro'" />
 	<node respawn="false" name="cepheus_spawn" pkg="gazebo_ros" type="spawn_model" output="screen"
