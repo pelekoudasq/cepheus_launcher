@@ -1,13 +1,25 @@
 // import packages
+const argv = require('minimist')(process.argv.slice(2));
+const bodyParser = require('body-parser');
 const express = require('express');
 const fs = require("fs");
-const bodyParser = require('body-parser');
 const http = require('http');
+const shell = require('shelljs');
 const socketio = require('socket.io');
+
+console.log(argv.robot_address);
 
 const app = express();
 const server = http.createServer(app);
 const io = socketio(server);
+
+setInterval(function(){
+	shell.exec(`ping -c 1 ${argv.robot_address}`,
+		{ silent: true, async: true },
+		function(code, stdout, stderr) {
+    		io.emit('ping', stdout);
+	})
+}, 1000);
 
 const api = require('./api')(io);
 

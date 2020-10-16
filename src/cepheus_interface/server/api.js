@@ -9,6 +9,10 @@ module.exports = function(io) {
 	const router = express.Router();
 	
 	router.post('/start', function(req, res, next) {
+		// shell.exec('ssh mrrobot@mrrobbot.local')
+	})
+
+	router.post('/startSimulation', function(req, res, next) {
 		var controller = req.body.controller ? true : false;
 		shell.cd('../../..');
 		shell.exec(`./start.sh ${controller}`, function(code, stdout, stderr) {
@@ -32,7 +36,7 @@ module.exports = function(io) {
 		});
 	});
 
-	router.post('/stop', function(req, res, next) {	
+	router.post('/stopSimulation', function(req, res, next) {	
 		shell.exec('killall -9 gzserver gzclient; rosnode kill -a; killall rosmaster', function(code, stdout, stderr) {
 			if (stderr) {
 				res.send({ status: 'error' });
