@@ -12,7 +12,7 @@ var ros;
 function Control() {
 
 	const [panel, setPanel] = useState("robot");
-	const [lock, setLock] = useState(false);
+	const [lock, setLock] = useState(true);
 
 
 	const [response, setResponse] = useState("");
@@ -20,7 +20,7 @@ function Control() {
 	const [started, setStarted] = useState("");
 	const [loading, setLoading] = useState(false);
 	const [override, setOverride] = useState(false);
-	const [logs, setLogs] = useState(false);
+	const [logs, setLogs] = useState(true);
 	const [ignite, setIgnite] = useState(true);
 	const [socketUp, setSocketUp] = useState(false);
 
@@ -50,7 +50,12 @@ function Control() {
 		});
 
 		socket.on('log', data => {
-			setResponse(data);
+			console.log(typeof data)
+			if (typeof data === 'string')
+				setResponse(data);
+			else
+				// console.log(new TextDecoder("utf-8").decode(data));
+				setResponse(new TextDecoder("utf-8").decode(data));
 		});
 
 		socket.on('ping', data => {
@@ -62,6 +67,40 @@ function Control() {
 
 	}, []);
 
+
+	const startRobot = (e) => {
+
+		e.preventDefault();
+		let requestOptions = {
+			mode: 'cors',
+			method: 'POST',
+			headers: { 'Content-Type': 'application/json' },
+			// body: JSON.stringify({
+			// 	controller
+			// }),
+		};
+		fetch(`http://localhost:9000/start`, requestOptions)
+		.then(status => {
+
+		})
+	}
+
+	const stopRobot = (e) => {
+
+		e.preventDefault();
+		let requestOptions = {
+			mode: 'cors',
+			method: 'POST',
+			headers: { 'Content-Type': 'application/json' },
+			// body: JSON.stringify({
+			// 	controller
+			// }),
+		};
+		fetch(`http://localhost:9000/stop`, requestOptions)
+		.then(status => {
+
+		})
+	}
 
 	const startSimulationRobot = (e) => {
 
@@ -132,7 +171,7 @@ function Control() {
 	}
 
 
-	const stopRobot = (e) => {
+	const stopSimulationRobot = (e) => {
 
 		e.preventDefault();
 		setLoading(true);
@@ -267,9 +306,30 @@ function Control() {
 					</small>
 				</div>
 			}
-			{panel === "simulation" &&
-				<div className="row">
-					<div className="col-md-8 p-1">
+			<div className="row">
+				<div className="col-md-8 p-1">
+					<div className="content-section container shadow mb-6">
+						<div className="border-bottom pt-1 mb-3">
+							<p className="h6">
+								<input
+									className="mr-2"
+									name="logs"
+									type="checkbox"
+									defaultChecked={logs}
+									value={logs}
+									onChange={e => setLogs(!logs)} />
+								Log Screen
+							</p>
+						</div>
+						{logs &&
+							<div className="overflow-auto">
+								<small className="float-left" style={{whiteSpace: 'pre-line'}}>
+									{response}
+								</small>
+							</div>
+						}
+					</div>
+					{panel === "simulation" &&
 						<div className="content-section container shadow mb-6" style={{height: '715px'}}>
 							<div className="border-bottom pt-1 mb-1 form-row">
 								<div className="mr-auto col-auto">
@@ -295,34 +355,59 @@ function Control() {
 									src="http://localhost:7575/stream?topic=/rrbot/camera1/image_raw&width=1093&height=600"/>
 								}
 						</div>
-						<div className="px-3 mx-3" style={{ textAlign: 'center' }}>
-							{started &&
+					}
+					<div className="px-3 mx-3" style={{ textAlign: 'center' }}>
+						{started &&
+							<button
+								disabled={loading}
+								onClick={stopSimulationRobot}
+								className="btn btn-danger shadow mb-0 w-100">
+								{!loading &&
+									<span>Emergency Stop</span>}
+								{loading &&
+									<span>Stopping...</span>}
+							</button>
+						}
+					</div>
+				</div>
+				<div className="col-md-4 p-1">
+					<div className="content-section container shadow mb-6">
+						<div className="border-bottom pt-1 mb-3">
+							<p className="h6">
+								<input
+									className="mr-2"
+									name="override"
+									type="checkbox"
+									defaultChecked={ignite} 
+									value={ignite}
+									onChange={e => setIgnite(!ignite)} />
+								Experiment Configuration & Ignition
+							</p>
+						</div>
+						{panel === "robot" &&
+							<div>
 								<button
+									onClick={startRobot}
 									disabled={loading}
+									className="btn btn-info shadow mb-0 w-100">
+									{!loading &&
+										<span>Start Robot</span>}
+									{loading &&
+										<span>Starting...</span>}
+								</button>
+								<br/>
+								<button
 									onClick={stopRobot}
+									disabled={loading}
 									className="btn btn-danger shadow mb-0 w-100">
 									{!loading &&
-										<span>Emergency Stop</span>}
+										<span>Stop Robot</span>}
 									{loading &&
-										<span>Stopping...</span>}
+										<span>Starting...</span>}
 								</button>
-							}
-						</div>
-					</div>
-					<div className="col-md-4 p-1">
-						<div className="content-section container shadow mb-6">
-							<div className="border-bottom pt-1 mb-3">
-								<p className="h6">
-									<input
-										className="mr-2"
-										name="override"
-										type="checkbox"
-										defaultChecked={ignite} 
-										value={ignite}
-										onChange={e => setIgnite(!ignite)} />
-									Experiment Configuration & Ignition
-								</p>
 							</div>
+						}
+						{panel === "simulation" &&
 							<form onSubmit={startSimulationRobot} className="mb-3">
 								{ignite &&
 									<div className="form-group">
@@ -368,126 +453,107 @@ function Control() {
 										disabled={loading}
 										className="btn btn-info shadow mb-0 w-100">
 										{!loading &&
-											<span>Start Robot</span>}
+											<span>Start Simulation</span>}
 										{loading &&
 											<span>Starting...</span>}
 									</button>
 								}
 							</form>
-						</div>
-						<div className="content-section container shadow mb-6">
-							<div className="border-bottom pt-1 mb-3">
-								<p className="h6">
-									<input
-										className="mr-2"
-										name="override"
-										type="checkbox"
-										value={override}
-										onChange={e => setOverride(!override)} />
-									Manual Override
-								</p>
-							</div>
-							{override &&
-								<div>
-									<form className="form-inline" onSubmit={handlePositionXSubmit}>
-										<div className="form-group mx-sm-3 mb-2">
-											<label htmlFor="posX"></label>
-											<input
-												className="form-control"
-												name="positionX"
-												id="posX"
-												type="number"
-												placeholder="Position X (m)"
-												value={positionX}
-												onChange={e => setPositionX(e.target.value)} />
-										</div>
-										<button disabled={(!started || !socketUp)} type="submit" className="btn btn-info  mb-2">Send Position X</button>
-									</form>
-									<form className="form-inline" onSubmit={handlePositionYSubmit}>
-										<div className="form-group mx-sm-3 mb-2">
-											<label htmlFor="posY"></label>
-											<input
-												className="form-control"
-												name="positionY"
-												id="posY"
-												type="number"
-												placeholder="Position Y (m)"
-												value={positionY}
-												onChange={e => setPositionY(e.target.value)} />
-										</div>
-										<button disabled={(!started || !socketUp)} type="submit" className="btn btn-info  mb-2">Send Position Y</button>
-									</form>
-									<form className="form-inline" onSubmit={handleRWVelocitySubmit}>
-										<div className="form-group mx-sm-3 mb-2">
-											<label htmlFor="rw_vel"></label>
-											<input
-												className="form-control"
-												name="rw_velocity"
-												id="rw_vel"
-												type="number"
-												placeholder="Reaction Wheel Velocity (rad/s)"
-												value={rw_velocity}
-												onChange={e => setRWVelocity(e.target.value)} />
-										</div>
-										<button disabled={(!started || !socketUp)} type="submit" className="btn btn-info  mb-2">Send RW Velocity</button>
-									</form>
-									<form className="form-inline" onSubmit={handleShoulderPositionSubmit}>
-										<div className="form-group mx-sm-3 mb-2">
-											<label htmlFor="shoulder_pos"></label>
-											<input
-												className="form-control"
-												name="shoulder_position"
-												id="shoulder_pos"
-												type="number"
-												placeholder="Shoulder Position (rad)"
-												value={shoulder_position}
-												onChange={e => setShoulderPosition(e.target.value)} />
-										</div>
-										<button disabled={(!started || !socketUp)} type="submit" className="btn btn-info  mb-2">Send Shoulder Position</button>
-									</form>
-									<form className="form-inline" onSubmit={handleElbowPositionSubmit}>
-										<div className="form-group mx-sm-3 mb-2">
-											<label htmlFor="elbow_pos"></label>
-											<input
-												className="form-control"
-												name="elbow_position"
-												id="elbow_pos"
-												type="number"
-												placeholder="Elbow Position (rad)"
-												value={elbow_position}
-												onChange={e => setElbowPosition(e.target.value)} />
-										</div>
-										<button disabled={(!started || !socketUp)} type="submit" className="btn btn-info  mb-2">Send Elbow Position</button>
-									</form>
-								</div>
-							}
-						</div>
-						<div className="content-section container shadow mb-6">
-							<div className="border-bottom pt-1 mb-3">
-								<p className="h6">
-									<input
-										className="mr-2"
-										name="logs"
-										type="checkbox"
-										value={logs}
-										onChange={e => setLogs(!logs)} />
-									Log Screen
-								</p>
-							</div>
-							{logs &&
-								<div className="overflow-auto">
-									<small className="float-left" style={{whiteSpace: 'pre-line'}}>
-										{response}
-									</small>
-								</div>
-							}
-						</div>
+						}
 					</div>
-				
-				<br/>
-				
+					{panel === "simulation" &&
+					<div className="content-section container shadow mb-6">
+						<div className="border-bottom pt-1 mb-3">
+							<p className="h6">
+								<input
+									className="mr-2"
+									name="override"
+									type="checkbox"
+									value={override}
+									onChange={e => setOverride(!override)} />
+								Manual Override
+							</p>
+						</div>
+						{override &&
+							<div>
+								<form className="form-inline" onSubmit={handlePositionXSubmit}>
+									<div className="form-group mx-sm-3 mb-2">
+										<label htmlFor="posX"></label>
+										<input
+											className="form-control"
+											name="positionX"
+											id="posX"
+											type="number"
+											placeholder="Position X (m)"
+											value={positionX}
+											onChange={e => setPositionX(e.target.value)} />
+									</div>
+									<button disabled={(!started || !socketUp)} type="submit" className="btn btn-info  mb-2">Send Position X</button>
+								</form>
+								<form className="form-inline" onSubmit={handlePositionYSubmit}>
+									<div className="form-group mx-sm-3 mb-2">
+										<label htmlFor="posY"></label>
+										<input
+											className="form-control"
+											name="positionY"
+											id="posY"
+											type="number"
+											placeholder="Position Y (m)"
+											value={positionY}
+											onChange={e => setPositionY(e.target.value)} />
+									</div>
+									<button disabled={(!started || !socketUp)} type="submit" className="btn btn-info  mb-2">Send Position Y</button>
+								</form>
+								<form className="form-inline" onSubmit={handleRWVelocitySubmit}>
+									<div className="form-group mx-sm-3 mb-2">
+										<label htmlFor="rw_vel"></label>
+										<input
+											className="form-control"
+											name="rw_velocity"
+											id="rw_vel"
+											type="number"
+											placeholder="Reaction Wheel Velocity (rad/s)"
+											value={rw_velocity}
+											onChange={e => setRWVelocity(e.target.value)} />
+									</div>
+									<button disabled={(!started || !socketUp)} type="submit" className="btn btn-info  mb-2">Send RW Velocity</button>
+								</form>
+								<form className="form-inline" onSubmit={handleShoulderPositionSubmit}>
+									<div className="form-group mx-sm-3 mb-2">
+										<label htmlFor="shoulder_pos"></label>
+										<input
+											className="form-control"
+											name="shoulder_position"
+											id="shoulder_pos"
+											type="number"
+											placeholder="Shoulder Position (rad)"
+											value={shoulder_position}
+											onChange={e => setShoulderPosition(e.target.value)} />
+									</div>
+									<button disabled={(!started || !socketUp)} type="submit" className="btn btn-info  mb-2">Send Shoulder Position</button>
+								</form>
+								<form className="form-inline" onSubmit={handleElbowPositionSubmit}>
+									<div className="form-group mx-sm-3 mb-2">
+										<label htmlFor="elbow_pos"></label>
+										<input
+											className="form-control"
+											name="elbow_position"
+											id="elbow_pos"
+											type="number"
+											placeholder="Elbow Position (rad)"
+											value={elbow_position}
+											onChange={e => setElbowPosition(e.target.value)} />
+									</div>
+									<button disabled={(!started || !socketUp)} type="submit" className="btn btn-info  mb-2">Send Elbow Position</button>
+								</form>
+							</div>
+						}
+					</div>
+					}
+					
 				</div>
-			}
+				<br/>
+			</div>
 		</div>
 	);
 }

@@ -2,6 +2,7 @@
 const express = require('express');
 const rosnodejs = require('rosnodejs');
 const shell = require('shelljs');
+const { spawn } = require('child_process');
 
 
 module.exports = function(io) {
@@ -9,13 +10,50 @@ module.exports = function(io) {
 	const router = express.Router();
 	
 	router.post('/start', function(req, res, next) {
-		// shell.exec('ssh mrrobot@mrrobbot.local')
+
+		var child = spawn('sh', ['prescript.sh', './start_robot.sh'], {cwd: '../../..'})
+
+		child.stdout.on('data', (data) => {
+			if (data)
+				io.emit('log', data);
+		});
+
+		child.stderr.on('data', (data) => {
+			if (data)
+				io.emit('log', data);
+		});
+
+		child.on('close', (code) => {
+			if (data)
+				io.emit('log', data);
+		});
+
+	})
+
+	router.post('/stop', function(req, res, next) {
+
+		var child = spawn('sh', ['prescript.sh', './stop_robot.sh'], {cwd: '../../..'})
+
+		child.stdout.on('data', (data) => {
+			if (data)
+				io.emit('log', data);
+		});
+
+		child.stderr.on('data', (data) => {
+			if (data)
+				io.emit('log', data);
+		});
+
+		child.on('close', (code) => {
+			if (data)
+				io.emit('log', data);
+		});
 	})
 
 	router.post('/startSimulation', function(req, res, next) {
 		var controller = req.body.controller ? true : false;
 		shell.cd('../../..');
-		shell.exec(`./start.sh ${controller}`, function(code, stdout, stderr) {
+		shell.exec(`./start_local_simulation.sh ${controller}`, function(code, stdout, stderr) {
 			shell.cd('./src/cepheus_interface/server');
 			if (stderr) {
 				res.send({ status: 'error' });
