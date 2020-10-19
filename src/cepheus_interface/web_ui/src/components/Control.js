@@ -47,15 +47,17 @@ function Control() {
 				setLoading(false);
 				setStarted(false);
 			}
+			else if (data === 'error') {
+				setLoading(false);
+				setStarted(false);
+			}
 		});
 
 		socket.on('log', data => {
-			console.log(typeof data)
 			if (typeof data === 'string')
-				setResponse(data);
-			else
-				// console.log(new TextDecoder("utf-8").decode(data));
-				setResponse(new TextDecoder("utf-8").decode(data));
+				setResponse(response +  data);
+			else if (typeof data !== 'number')
+				setResponse(response + new TextDecoder("utf-8").decode(data));
 		});
 
 		socket.on('ping', data => {
@@ -65,12 +67,15 @@ function Control() {
 				setPing('failed')
 		});
 
-	}, []);
+	}, [response]);
 
 
 	const startRobot = (e) => {
 
 		e.preventDefault();
+		setLoading(true);
+		setLock(true);
+
 		let requestOptions = {
 			mode: 'cors',
 			method: 'POST',
@@ -81,7 +86,7 @@ function Control() {
 		};
 		fetch(`http://localhost:9000/start`, requestOptions)
 		.then(status => {
-
+			console.log(status)
 		})
 	}
 
@@ -266,15 +271,16 @@ function Control() {
 		<div className="col-md-12">
 			<div className="border-bottom pt-3 mb-2">
 				<form>
-
-
 					<div className="form-row">
-						<div className="ml-auto mr-auto col-auto">
+						<div className="col-auto">
+							<img src={process.env.PUBLIC_URL + '/ntua-cslep.png'} style={{width: '37px', height: '37px'}} alt="logo"/>
+						</div>
+						<div className="ml-auto mr-auto col-auto pt-1">
 							<p className="h4 text-center form-group">Main Control Panel</p>
 						</div>
 						<div className="col-auto">
 							{lock &&
-								<button className="btn btn-info" onClick={e => setLock(!lock)}>
+								<button className="btn btn-info" onClick={e => setLock(!lock)} disabled={loading || started}>
 									<i className="fa fa-unlock-alt" aria-hidden="true"></i>
 								</button>
 							}
@@ -293,57 +299,25 @@ function Control() {
 					</div>
 				</form>
 			</div>
-			{panel === "robot" &&
-				<div className="overflow-auto">
-					<small className="float-left" style={{whiteSpace: 'pre-line'}}>
-						Ping status:
-						{ping === "success" &&
-							<i className="fa fa-check" aria-hidden="true"></i>
-						}
-						{ping === "failed" &&
-							<i className="fa fa-ban" aria-hidden="true"></i>
-						}
-					</small>
-				</div>
-			}
 			<div className="row">
 				<div className="col-md-8 p-1">
-					<div className="content-section container shadow mb-6">
-						<div className="border-bottom pt-1 mb-3">
-							<p className="h6">
-								<input
-									className="mr-2"
-									name="logs"
-									type="checkbox"
-									defaultChecked={logs}
-									value={logs}
-									onChange={e => setLogs(!logs)} />
-								Log Screen
-							</p>
-						</div>
-						{logs &&
-							<div className="overflow-auto">
-								<small className="float-left" style={{whiteSpace: 'pre-line'}}>
-									{response}
-								</small>
-							</div>
-						}
-					</div>
 					{panel === "simulation" &&
 						<div className="content-section container shadow mb-6" style={{height: '715px'}}>
 							<div className="border-bottom pt-1 mb-1 form-row">
 								<div className="mr-auto col-auto">
 									<p className="h6">Top Down View</p>
 								</div>
-								<div className="col-auto" >
-									<a
-										href="http://localhost:7575/stream_viewer?topic=/rrbot/camera1/image_raw"
-										target="_blank"
-										rel="noopener noreferrer"
-									>
-										<i className="fa fa-external-link" aria-hidden="true"></i>
-									</a>
-								</div>
+								{started && 
+									<div className="col-auto" >
+										<a
+											href="http://localhost:7575/stream_viewer?topic=/rrbot/camera1/image_raw"
+											target="_blank"
+											rel="noopener noreferrer"
+										>
+											<i className="fa fa-external-link" aria-hidden="true"></i>
+										</a>
+									</div>
+								}
 							</div>
 							Simulation Time: {sec} <small>secs</small>, {nsec} <small>nsecs</small>
 							<br/>
@@ -354,6 +328,23 @@ function Control() {
 									style={{position: 'relative', height: '90%'}}
 									src="http://localhost:7575/stream?topic=/rrbot/camera1/image_raw&width=1093&height=600"/>
 								}
+						</div>
+					}
+					{panel === "robot" &&
+						<div className="content-section container shadow mb-6">
+							<div className="overflow-auto">
+								<small className="float-left" style={{whiteSpace: 'pre-line'}}>
+									<p className="h6">
+										Connection status:
+										{ping === "success" &&
+											<i className="fa fa-wifi mx-1" style={{color: '#218838'}} aria-hidden="true"></i>
+										}
+										{ping === "failed" &&
+											<i className="fa fa-close mx-1" style={{color: '#dc3545'}} aria-hidden="true"></i>
+										}
+									</p>
+								</small>
+							</div>
 						</div>
 					}
 					<div className="px-3 mx-3" style={{ textAlign: 'center' }}>
@@ -367,6 +358,28 @@ function Control() {
 								{loading &&
 									<span>Stopping...</span>}
 							</button>
+						}
+					</div>
+					<div className="content-section container shadow mb-6">
+						<div className="border-bottom pt-1 mb-3">
+							<p className="h6">
+								<input
+									className="mr-2"
+									name="logs"
+									type="checkbox"
+									defaultChecked={logs}
+									value={logs}
+									onChange={e => setLogs(!logs)} />
+								Log Screen
+								<i className="fa fa-ban float-right" style={{cursor: 'pointer'}} aria-hidden="true" onClick={e => setResponse("")}></i>
+							</p>
+						</div>
+						{logs &&
+							<div className="overflow-auto">
+								<small className="float-left" style={{whiteSpace: 'pre-line'}}>
+									{response}
+								</small>
+							</div>
 						}
 					</div>
 				</div>
@@ -386,25 +399,25 @@ function Control() {
 						</div>
 						{panel === "robot" &&
 							<div>
-								<button
+								{!started && <button
 									onClick={startRobot}
-									disabled={loading}
+									disabled={loading || ping === 'failed'}
 									className="btn btn-info shadow mb-0 w-100">
 									{!loading &&
 										<span>Start Robot</span>}
 									{loading &&
 										<span>Starting...</span>}
-								</button>
+								</button>}
 								<br/>
-								<button
+								{started && <button
 									onClick={stopRobot}
 									disabled={loading}
 									className="btn btn-danger shadow mb-0 w-100">
 									{!loading &&
 										<span>Stop Robot</span>}
 									{loading &&
-										<span>Starting...</span>}
-								</button>
+										<span>Stoping...</span>}
+								</button>}
 							</div>
 						}
 						{panel === "simulation" &&
@@ -417,7 +430,7 @@ function Control() {
 											id="controllerSelector"
 											value={controller}
 											onChange={handleControllerSelector}
-											disabled={started}>
+											disabled={started || loading}>
 											<option value="false">None</option>
 											<option value="true">The one I have</option>
 										</select>
@@ -425,14 +438,14 @@ function Control() {
 										<select
 											className="form-control mb-3"
 											id="identificationSelector"
-											disabled={started}>
+											disabled={started || loading}>
 											<option value="false">None</option>
 										</select>
 										<label htmlFor="telemetrySelector">Select values for telemetry</label>
 										<select multiple
 											className="form-control mb-3"
 											id="telemetrySelector"
-											disabled={started}>
+											disabled={started || loading}>
 											<option value="false">Robot's Position</option>
 											<option value="false">RW Velocity</option>
 											<option value="false">Shoulder Position</option>
@@ -442,7 +455,7 @@ function Control() {
 										<select
 											className="form-control mb-3"
 											id="plotSelector"
-											disabled={started}>
+											disabled={started || loading}>
 											<option value="false">None</option>
 										</select>
 									</div>

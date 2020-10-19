@@ -12,20 +12,19 @@ module.exports = function(io) {
 	router.post('/start', function(req, res, next) {
 
 		var child = spawn('sh', ['prescript.sh', './start_robot.sh'], {cwd: '../../..'})
-
 		child.stdout.on('data', (data) => {
-			if (data)
-				io.emit('log', data);
+			io.emit('status', 'running');
+			io.emit('log', data);
 		});
 
 		child.stderr.on('data', (data) => {
-			if (data)
-				io.emit('log', data);
+			io.emit('status', 'error');
+			io.emit('log', data);
 		});
 
 		child.on('close', (code) => {
-			if (data)
-				io.emit('log', data);
+			io.emit('status', 'closed');
+			io.emit('log', code);
 		});
 
 	})
@@ -35,18 +34,18 @@ module.exports = function(io) {
 		var child = spawn('sh', ['prescript.sh', './stop_robot.sh'], {cwd: '../../..'})
 
 		child.stdout.on('data', (data) => {
-			if (data)
-				io.emit('log', data);
+			io.emit('status', 'stopped');
+			io.emit('log', data);
 		});
 
 		child.stderr.on('data', (data) => {
-			if (data)
-				io.emit('log', data);
+			io.emit('status', 'error');
+			io.emit('log', data);
 		});
 
 		child.on('close', (code) => {
-			if (data)
-				io.emit('log', data);
+			io.emit('status', 'closed');
+			io.emit('log', code);
 		});
 	})
 
@@ -64,13 +63,6 @@ module.exports = function(io) {
 				io.emit('status', 'running');
 				io.emit('log', stdout);
 			}
-			// setTimeout(function () {
-			// 	const nh = rosnodejs.nh;
-			// 	const sub = nh.subscribe('/cepheus/joint_states', 'sensor_msgs/JointState', (msg) => {
-			// 		console.log('Got msg on c: %j', msg);
-			// 	}, {queueSize: 1, throttleMs: 1000});
-			// }, 10000);
-
 		});
 	});
 
