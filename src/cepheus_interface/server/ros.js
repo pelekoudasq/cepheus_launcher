@@ -12,6 +12,7 @@ const server = http.createServer(app);
 const io = socketio(server);
 
 if (argv.robot_address) {
+	console.log(`Pinging robot computer at: ${argv.robot_address}`);
 	setInterval(function(){
 		shell.exec(`ping -c 1 ${argv.robot_address}`,
 			{ silent: true, async: true },
@@ -26,7 +27,7 @@ const api = require('./api')(io);
 const port = 9000;
 
 app.use(function(req, res, next) {
-	res.header("Access-Control-Allow-Origin", "http://localhost:3000");
+	res.header("Access-Control-Allow-Origin", "http://localhost");
 	res.header("Access-Control-Allow-Headers", "Origin, X-Requested-With, Content-Type, Accept, Access-Control-Allow-Headers, Access-Control-Request-Method, Access-Control-Request-Headers, Authorization");
 	res.header('Access-Control-Allow-Methods', 'GET, PUT, POST, DELETE, PATCH, OPTIONS');
 	next();
