@@ -9,6 +9,7 @@ docker-compose up
 ```
 Then visit http://localhost
 
+![alt text](src/cepheus_interface/docs/screen-01.png)
 
 Simulation Requirements
 -----------------------

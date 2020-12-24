@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { withRouter } from 'react-router';
+import ReactModal from 'react-modal';
 // import { Link } from 'react-router-dom';
 import io from 'socket.io-client';
 import ROSLIB from 'roslib';
@@ -16,6 +17,7 @@ function Control() {
 
 
 	const [response, setResponse] = useState("");
+	const [showModal, setShowModal] = useState(false);
 	const [ping, setPing] = useState("");
 	const [started, setStarted] = useState("");
 	const [loading, setLoading] = useState(false);
@@ -164,6 +166,14 @@ function Control() {
 
 	};
 
+
+	const handleOpenModal = (e) => {
+		setShowModal(true);
+	}
+
+	const handleCloseModal = (e) => {
+		setShowModal(false);
+	}
 
 	const handleControllerSelector = (e) => {
 		setController(e.target.value);
@@ -399,15 +409,103 @@ function Control() {
 						</div>
 						{panel === "robot" &&
 							<div>
-								{!started && <button
-									onClick={startRobot}
-									disabled={loading || ping === 'failed'}
-									className="btn btn-info shadow mb-0 w-100">
-									{!loading &&
-										<span>Start Robot</span>}
-									{loading &&
-										<span>Starting...</span>}
-								</button>}
+								{!started && 
+								<div>
+									<button 
+										onClick={handleOpenModal}
+										className="btn btn-success shadow mb-2 w-100">
+										<i className="fa fa-check"></i> Run Tests
+									</button>
+									<button 
+										onClick={handleOpenModal}
+										className="btn btn-secondary shadow mb-2 w-100">
+										<i className="fa fa-sliders"></i> Configure Launch
+									</button>
+									<ReactModal
+										isOpen={showModal}
+										contentLabel="Minimal Modal Example"
+									>
+										<div className="row container-fluid m-0 p-0">
+											<div className="col-md-12 p-0">
+												<div className="border-bottom pt-1 mb-3">
+													<p className="h6">
+														Configure Launch File
+														<button 
+															onClick={handleCloseModal}
+															className="btn btn-sm btn-danger shadow float-right py-0">
+															<i className="fa fa-close"></i>
+														</button>
+													</p>
+												</div>
+												<form>
+													<p className="h5 border-bottom pt-2">Hardware Parameters</p>
+													<br/>
+													<div className="row">
+														<div className="col-md-2 form-group">
+															<label for="thruster_force">Thruster Force</label>
+															<input type="number" className="form-control" id="thruster_force" value="0.6"/>
+														</div>
+														<div className="col-md-2 form-group">
+															<label for="max_motor_current">Max motor current</label>
+															<input type="number" className="form-control" id="max_motor_current" value="2.00"/>
+														</div>
+														<div className="col-md-2 form-group">
+															<label for="rw_max_speed">RW max speed</label>
+															<input type="number" className="form-control" id="rw_max_speed" value="400"/>
+														</div>
+														<div className="col-md-2 form-group">
+															<label for="rw_total_inertia">RW total inertia</label>
+															<input type="number" className="form-control" id="rw_total_inertia" value="0.00197265"/>
+														</div>
+														<div className="col-md-2 form-group">
+															<label for="rw_max_torque">RW max torque</label>
+															<input type="number" className="form-control" id="rw_max_torque" value="0.02"/>
+														</div>
+														<div className="col-md-2 form-group">
+															<label for="rw_max_power">RW max power</label>
+															<input type="number" className="form-control" id="rw_max_power" value="30"/>
+														</div>
+													</div>
+													<div className="row">
+														<div className="col-md-2 form-group">
+															<label for="loop_rate">Loop Rate</label>
+															<input type="number" className="form-control" id="loop_rate" value="200.0"/>
+														</div>
+														<div className="col-md-2 form-group">
+															<label for="left_shoulder_limit_pos">Left shoulder limit position</label>
+															<input type="number" className="form-control" id="left_shoulder_limit_pos" value="3.1548"/>
+														</div>
+														<div className="col-md-2 form-group">
+															<label for="left_elbow_limit_pos">Left elbow limit position</label>
+															<input type="number" className="form-control" id="left_elbow_limit_pos" value="1.658"/>
+														</div>
+														<div className="col-md-2 form-group">
+															<label for="right_shoulder_limit_pos">Right shoulder limit position</label>
+															<input type="number" className="form-control" id="right_shoulder_limit_pos" value="-2.453"/>
+														</div>
+														<div className="col-md-2 form-group">
+															<label for="right_elbow_limit_pos">Right elbow limit position</label>
+															<input type="number" className="form-control" id="right_elbow_limit_pos" value="-1.6231"/>
+														</div>
+														<div className="col-md-2 form-group">
+															<label for="use_with_chase_planner">Use chase planner</label>
+															<input type="checkbox" className="form-control" id="use_with_chase_planner" value="1"/>
+														</div>
+													</div>
+												</form>
+											</div>
+										</div>
+									</ReactModal>
+									<button
+										onClick={startRobot}
+										// disabled={loading || ping === 'failed'}
+										className="btn btn-info shadow mb-0 w-100">
+										{!loading &&
+											<span><i class="fa fa-rocket" aria-hidden="true"></i> Start Robot</span>}
+										{loading &&
+											<span>Starting...</span>}
+									</button>
+								</div>}
 								<br/>
 								{started && <button
 									onClick={stopRobot}
