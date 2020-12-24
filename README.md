@@ -11,6 +11,9 @@ Then visit http://localhost
 
 ![alt text](src/cepheus_interface/docs/screen-01.png)
 
+Simulation run:
+![alt text](src/cepheus_interface/docs/screen-02.png)
+
 Simulation Requirements
 -----------------------
 ROS version: melodic, and:
