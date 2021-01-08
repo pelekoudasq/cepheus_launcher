@@ -7,8 +7,11 @@ import ROSLIB from 'roslib';
 // import 'mjpegcanvas';
 import '../App.css';
 
+import { Line } from 'react-chartjs-2';
+
 
 var ros;
+var states = [];
 
 function Control() {
 
@@ -23,7 +26,7 @@ function Control() {
 	const [loading, setLoading] = useState(false);
 	const [override, setOverride] = useState(false);
 	const [logs, setLogs] = useState(true);
-	const [ignite, setIgnite] = useState(true);
+	const [ignite, setIgnite] = useState(false);
 	const [socketUp, setSocketUp] = useState(false);
 
 	const [controller, setController] = useState(false);
@@ -36,8 +39,11 @@ function Control() {
 	const [sec, setTimeSec] = useState(0);
 	const [nsec, setTimeNsec] = useState(0);
 
-	useEffect(() => {
+	const [chartData, setChartData] = useState({});
+	const [reference, setReference] = useState({});
 
+	useEffect(() => {
+		chart();
 		const socket = io('http://localhost:9000');
 
 		socket.on('status', data => {
@@ -69,7 +75,22 @@ function Control() {
 				setPing('failed')
 		});
 
-	}, [response]);
+	}, [response, reference]);
+
+
+	const chart = () => {
+		setChartData({
+			labels: states,
+			datasets: [
+				{
+					label: "time over time",
+					data: states,
+					backgroundColor: ["rgba(75, 192, 192, 0.6)"],
+					borderWidth: 4
+				}
+			]
+		});
+	};
 
 
 	const startRobot = (e) => {
@@ -134,6 +155,7 @@ function Control() {
 
 				ros.on('connection', function() {
 					setSocketUp(true);
+					let lineChart = reference.chartInstance
 					console.log('Connected to websocket server.');
 					var time_listener = new ROSLIB.Topic({
 						ros : ros,
@@ -144,6 +166,8 @@ function Control() {
 						time_listener.subscribe(function(message) {
 							setTimeSec(message.clock.secs);
 							setTimeNsec(message.clock.nsecs);
+							states.push(message.clock.secs);
+							lineChart.update();
 							time_listener.unsubscribe();
 						});
 					}, 500);
@@ -442,53 +466,53 @@ function Control() {
 													<br/>
 													<div className="row">
 														<div className="col-md-2 form-group">
-															<label for="thruster_force">Thruster Force</label>
+															<label htmlFor="thruster_force">Thruster Force</label>
 															<input type="number" className="form-control" id="thruster_force" value="0.6"/>
 														</div>
 														<div className="col-md-2 form-group">
-															<label for="max_motor_current">Max motor current</label>
+															<label htmlFor="max_motor_current">Max motor current</label>
 															<input type="number" className="form-control" id="max_motor_current" value="2.00"/>
 														</div>
 														<div className="col-md-2 form-group">
-															<label for="rw_max_speed">RW max speed</label>
+															<label htmlFor="rw_max_speed">RW max speed</label>
 															<input type="number" className="form-control" id="rw_max_speed" value="400"/>
 														</div>
 														<div className="col-md-2 form-group">
-															<label for="rw_total_inertia">RW total inertia</label>
+															<label htmlFor="rw_total_inertia">RW total inertia</label>
 															<input type="number" className="form-control" id="rw_total_inertia" value="0.00197265"/>
 														</div>
 														<div className="col-md-2 form-group">
-															<label for="rw_max_torque">RW max torque</label>
+															<label htmlFor="rw_max_torque">RW max torque</label>
 															<input type="number" className="form-control" id="rw_max_torque" value="0.02"/>
 														</div>
 														<div className="col-md-2 form-group">
-															<label for="rw_max_power">RW max power</label>
+															<label htmlFor="rw_max_power">RW max power</label>
 															<input type="number" className="form-control" id="rw_max_power" value="30"/>
 														</div>
 													</div>
 													<div className="row">
 														<div className="col-md-2 form-group">
-															<label for="loop_rate">Loop Rate</label>
+															<label htmlFor="loop_rate">Loop Rate</label>
 															<input type="number" className="form-control" id="loop_rate" value="200.0"/>
 														</div>
 														<div className="col-md-2 form-group">
-															<label for="left_shoulder_limit_pos">Left shoulder limit position</label>
+															<label htmlFor="left_shoulder_limit_pos">Left shoulder limit position</label>
 															<input type="number" className="form-control" id="left_shoulder_limit_pos" value="3.1548"/>
 														</div>
 														<div className="col-md-2 form-group">
-															<label for="left_elbow_limit_pos">Left elbow limit position</label>
+															<label htmlFor="left_elbow_limit_pos">Left elbow limit position</label>
 															<input type="number" className="form-control" id="left_elbow_limit_pos" value="1.658"/>
 														</div>
 														<div className="col-md-2 form-group">
-															<label for="right_shoulder_limit_pos">Right shoulder limit position</label>
+															<label htmlFor="right_shoulder_limit_pos">Right shoulder limit position</label>
 															<input type="number" className="form-control" id="right_shoulder_limit_pos" value="-2.453"/>
 														</div>
 														<div className="col-md-2 form-group">
-															<label for="right_elbow_limit_pos">Right elbow limit position</label>
+															<label htmlFor="right_elbow_limit_pos">Right elbow limit position</label>
 															<input type="number" className="form-control" id="right_elbow_limit_pos" value="-1.6231"/>
 														</div>
 														<div className="col-md-2 form-group">
-															<label for="use_with_chase_planner">Use chase planner</label>
+															<label htmlFor="use_with_chase_planner">Use chase planner</label>
 															<input type="checkbox" className="form-control" id="use_with_chase_planner" value="1"/>
 														</div>
 													</div>
@@ -501,7 +525,7 @@ function Control() {
 										// disabled={loading || ping === 'failed'}
 										className="btn btn-info shadow mb-0 w-100">
 										{!loading &&
-											<span><i class="fa fa-rocket" aria-hidden="true"></i> Start Robot</span>}
+											<span><i className="fa fa-rocket" aria-hidden="true"></i> Start Robot</span>}
 										{loading &&
 											<span>Starting...</span>}
 									</button>
@@ -572,6 +596,19 @@ function Control() {
 							</form>
 						}
 					</div>
+					{panel === "simulation" &&
+						<div className="content-section container shadow mb-6">
+							<div className="border-bottom pt-1 mb-3">
+								<p className="h6">
+									Chart
+								</p>
+							</div>
+							<Line
+								data={chartData}
+								ref={(reference) => setReference(reference)}
+							/>
+						</div>
+					}
 					{panel === "simulation" &&
 					<div className="content-section container shadow mb-6">
 						<div className="border-bottom pt-1 mb-3">
@@ -661,7 +698,6 @@ function Control() {
 						}
 					</div>
 					}
-					
 				</div>
 				<br/>
 			</div>
