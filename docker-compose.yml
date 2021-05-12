@@ -29,3 +29,10 @@ services:
     stdin_open: true
     environment:
       - CHOKIDAR_USEPOLLING=true
+  # django-server:
+  #   container_name: django_server
+  #   build:
+  #     context: ./django_server/
+  #     dockerfile: Dockerfile
+  #   ports:
+  #     - "127.0.0.1:8001:8000"
