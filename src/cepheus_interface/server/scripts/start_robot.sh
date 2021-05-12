@@ -1,3 +1,3 @@
 #!/bin/bash
-cd /home/mrrobot/cepheus_ws/
+cd /home/cepheus/cepheus_ws/
 ./start_robot.sh

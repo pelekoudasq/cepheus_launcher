@@ -14,38 +14,38 @@ module.exports = function(io) {
 		var child = spawn('sh', ['prescript.sh', './start_robot.sh'], {cwd: './scripts'})
 		child.stdout.on('data', (data) => {
 			io.emit('status', 'running');
-			io.emit('log', data);
+			// io.emit('log', data);
 		});
 
 		child.stderr.on('data', (data) => {
 			io.emit('status', 'error');
-			io.emit('log', data);
+			// io.emit('log', data);
 		});
 
 		child.on('close', (code) => {
-			io.emit('status', 'closed');
-			io.emit('log', code);
+			// io.emit('status', 'closed');
+			// io.emit('log', code);
 		});
 
 	})
 
 	router.post('/stop', function(req, res, next) {
-		console.log('# start #')
+		console.log('# stop #')
 		var child = spawn('sh', ['prescript.sh', './stop_robot.sh'], {cwd: './scripts'})
-		child.stdout.on('data', (data) => {
-			io.emit('status', 'stopped');
-			io.emit('log', data);
-		});
+		// child.stdout.on('data', (data) => {
+		// 	io.emit('status', 'stopped');
+		// 	// io.emit('log', data);
+		// });
 
-		child.stderr.on('data', (data) => {
-			io.emit('status', 'error');
-			io.emit('log', data);
-		});
+		// child.stderr.on('data', (data) => {
+		// 	io.emit('status', 'error');
+		// 	// io.emit('log', data);
+		// });
 
-		child.on('close', (code) => {
-			io.emit('status', 'closed');
-			io.emit('log', code);
-		});
+		// child.on('close', (code) => {
+		// 	// io.emit('status', 'closed');
+		// 	// io.emit('log', code);
+		// });
 	})
 
 	router.post('/startSimulation', function(req, res, next) {

@@ -7,6 +7,8 @@ const http = require('http');
 const shell = require('shelljs');
 const socketio = require('socket.io');
 
+require('dotenv').config();
+
 const app = express();
 const server = http.createServer(app);
 const io = socketio(server);
@@ -27,8 +29,7 @@ const api = require('./api')(io);
 const port = 9000;
 
 app.use(function(req, res, next) {
-	res.header("Access-Control-Allow-Origin", "http://localhost");
-	res.header("Access-Control-Allow-Origin", "http://localhost:3000");
+	res.header("Access-Control-Allow-Origin", process.env.FRONT_URI);
 	res.header("Access-Control-Allow-Headers", "Origin, X-Requested-With, Content-Type, Accept, Access-Control-Allow-Headers, Access-Control-Request-Method, Access-Control-Request-Headers, Authorization");
 	res.header('Access-Control-Allow-Methods', 'GET, PUT, POST, DELETE, PATCH, OPTIONS');
 	next();

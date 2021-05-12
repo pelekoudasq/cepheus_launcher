@@ -38,15 +38,18 @@ function Control() {
 
 	const [sec, setTimeSec] = useState(0);
 	const [nsec, setTimeNsec] = useState(0);
+	const [ls_pos, setLSPosition] = useState(0);
+	const [le_pos, setLEPosition] = useState(0);
 
 	const [chartData, setChartData] = useState({});
 	const [reference, setReference] = useState({});
 
 	useEffect(() => {
+		// init()
 		chart();
-		const socket = io('http://localhost:9000');
-
+		const socket = io(process.env.REACT_APP_BACKEND_URI);
 		socket.on('status', data => {
+			console.log(data)
 			if (data === 'running') {
 				setLoading(false);
 				setStarted(true);
@@ -55,10 +58,10 @@ function Control() {
 				setLoading(false);
 				setStarted(false);
 			}
-			else if (data === 'error') {
-				setLoading(false);
-				setStarted(false);
-			}
+			// else if (data === 'error') {
+			// 	setLoading(false);
+			// 	setStarted(false);
+			// }
 		});
 
 		socket.on('log', data => {
@@ -83,7 +86,7 @@ function Control() {
 			labels: states,
 			datasets: [
 				{
-					label: "time over time",
+					label: "pos",
 					data: states,
 					backgroundColor: ["rgba(75, 192, 192, 0.6)"],
 					borderWidth: 4
@@ -107,11 +110,88 @@ function Control() {
 			// 	controller
 			// }),
 		};
-		fetch(`http://localhost:9000/start`, requestOptions)
+		fetch(`${process.env.REACT_APP_BACKEND_URI}/start`, requestOptions)
 		.then(status => {
 			console.log(status)
+			ros = new ROSLIB.Ros({
+				url : process.env.REACT_APP_WS_URI
+			});
 		})
 	}
+
+
+	// function init() {
+	// 	var can = document.getElementById('mycanvas');
+	// 	if(can.getContext) {
+	// 		var ctx = can.getContext('2d');
+
+	// 		var drawAngledLine = function(x, y, length, angle) {
+	// 			var radians = angle / 180 * Math.PI;
+	// 			var endX = x + length * Math.cos(radians);
+	// 			var endY = y - length * Math.sin(radians);
+
+	// 			ctx.beginPath();
+	// 			ctx.moveTo(x, y)
+	// 			ctx.lineTo(endX, endY);
+	// 			ctx.closePath();
+	// 			ctx.stroke();
+	// 		}
+
+	// 		var drawCircle = function(x, y, r) {
+	// 			ctx.beginPath();
+	// 			ctx.arc(x, y, r, 0, Math.PI*2, true);
+	// 			ctx.closePath();
+	// 			ctx.fill();
+	// 		}
+
+	// 		var drawDot = function(x, y, length, angle, value) {
+	// 			var radians = angle / 180 * Math.PI;
+	// 			var endX = x + length*value/100 * Math.cos(radians);
+	// 			var endY = y - length*value/100 * Math.sin(radians);
+	// 			drawCircle(endX, endY, 2);
+	// 		}
+
+	// 		var drawText = function(x, y, length, angle, value) {
+	// 			var radians = angle / 180 * Math.PI;
+	// 			var endX = x + length*value/100 * Math.cos(radians);
+	// 			var endY = y - length*value/100 * Math.sin(radians);
+	// 			console.debug(endX+","+endY);
+	// 			ctx.fillText(value+"%", endX+15, endY+5);
+	// 			ctx.stroke();
+	// 		}
+
+
+	// 		var visualizeData = function(x, y, length, angle, value) {
+
+	// 			ctx.strokeStyle = "#999";
+	// 			ctx.lineWidth = "1";
+	// 			drawAngledLine(x, y, length, angle);
+
+	// 			ctx.fillStyle = "#0a0";
+	// 			drawDot(x, y, length, angle, value);
+				
+	// 			ctx.fillStyle = "#666";
+	// 			ctx.font = "bold 10px Arial";
+	// 			ctx.textAlign = "center";
+	// 			drawText(x, y, length, angle, value);
+
+	// 		}
+
+	// 		ctx.fillStyle = "#FFF0B3";
+	// 		drawCircle(150, 150, 150);
+
+	// 		visualizeData(150, 150, 150, 0, 34);
+	// 		visualizeData(150, 150, 150, 12, 54);
+	// 		visualizeData(150, 150, 150, 70, 23)
+
+	// 		visualizeData(150, 150, 150, 120, 50);
+	// 		visualizeData(150, 150, 150, -120, 80);
+	// 		visualizeData(150, 150, 150, -45, 60);
+
+	// 	} else {
+	// 		// Fallback code goes here
+	// 	}
+	// }
 
 	const stopRobot = (e) => {
 
@@ -124,7 +204,7 @@ function Control() {
 			// 	controller
 			// }),
 		};
-		fetch(`http://localhost:9000/stop`, requestOptions)
+		fetch(`${process.env.REACT_APP_BACKEND_URI}/stop`, requestOptions)
 		.then(status => {
 
 		})
@@ -145,12 +225,12 @@ function Control() {
 			}),
 		};
 
-		fetch(`http://localhost:9000/startSimulation`, requestOptions)
+		fetch(`${process.env.REACT_APP_BACKEND_URI}/startSimulation`, requestOptions)
 		.then(status => {
 			setTimeout(function() {
 
 				ros = new ROSLIB.Ros({
-					url : 'ws://localhost:9090'
+					url : process.env.REACT_APP_WS_URI
 				});
 
 				ros.on('connection', function() {
@@ -162,15 +242,28 @@ function Control() {
 						name : '/clock',
 						messageType : 'rosgraph_msgs/Clock'
 					});
+					var joint_states_listener = new ROSLIB.Topic({
+						ros : ros,
+						name : '/cepheus/joint_states',
+						messageType : 'sensor_msgs/JointState'
+					});
 					let interval = setInterval(() => {
 						time_listener.subscribe(function(message) {
 							setTimeSec(message.clock.secs);
 							setTimeNsec(message.clock.nsecs);
-							states.push(message.clock.secs);
+							// states.push(message.clock.secs);
+							// lineChart.update();
+							time_listener.unsubscribe();
+						});
+						joint_states_listener.subscribe(function(message) {
+							setLEPosition(message.position[0]);
+							setLSPosition(message.position[1]);
+							states.push(message.position[0]);
+							states.splice(0, states.length - 100);
 							lineChart.update();
 							time_listener.unsubscribe();
 						});
-					}, 500);
+					}, 10000);
 					return () => {
 						clearInterval(interval);
 					};
@@ -219,7 +312,7 @@ function Control() {
 			method: 'POST'
 		};
 
-		fetch(`http://localhost:9000/stopSimulation`, requestOptions);
+		fetch(`${process.env.REACT_APP_BACKEND_URI}/stopSimulation`, requestOptions);
 
 		setTimeSec(0);
 		setTimeNsec(0);
@@ -410,6 +503,7 @@ function Control() {
 						</div>
 						{logs &&
 							<div className="overflow-auto">
+								{/*<canvas id='mycanvas' width="300" height="300"></canvas>*/}
 								<small className="float-left" style={{whiteSpace: 'pre-line'}}>
 									{response}
 								</small>

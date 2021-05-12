@@ -4,6 +4,7 @@
   "description": "",
   "main": "ros.js",
   "dependencies": {
+    "dotenv": "^9.0.2",
     "express": "^4.17.1",
     "rosnodejs": "^3.0.2",
     "shelljs": "^0.8.4",
@@ -13,7 +14,7 @@
     "nodemon": "^2.0.4"
   },
   "scripts": {
-    "dev": "nodemon ros --robot_address=192.168.1.2"
+    "dev": "nodemon ros --robot_address=192.168.1.103"
   },
   "repository": {
     "type": "git",
